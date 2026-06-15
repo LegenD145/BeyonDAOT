@@ -6,9 +6,7 @@
     "mixins": [
         "BladeItemMixin",
         "ThunderSpearLoadMixin",
-        "ThunderSpearFireMixin",
-        "AttackTitanEatMixin",
-        "AttackTitanAbilityMixin"
+        "ThunderSpearFireMixin"
     ],
     "minVersion": "0.8"
 }
