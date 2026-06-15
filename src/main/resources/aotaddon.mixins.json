@@ -1,0 +1,11 @@
+{
+    "required": true,
+    "package": "com.aotaddon.mixin",
+    "compatibilityLevel": "JAVA_21",
+    "mixins": [
+        "BladeItemMixin",
+        "ThunderSpearLoadMixin",
+        "ThunderSpearFireMixin"
+    ],
+    "minVersion": "0.8"
+}

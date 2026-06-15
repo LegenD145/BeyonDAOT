@@ -1,0 +1,13 @@
+{
+  "itemGroup.titanreqiuem": "Example Mod Tab",
+  "block.titanreqiuem.example_block": "Example Block",
+  "item.titanreqiuem.example_item": "Example Item",
+
+  "titanreqiuem.configuration.title": "TitanReqiuem Configs",
+  "titanreqiuem.configuration.section.titanreqiuem.common.toml": "TitanReqiuem Configs",
+  "titanreqiuem.configuration.section.titanreqiuem.common.toml.title": "TitanReqiuem Configs",
+  "titanreqiuem.configuration.items": "Item List",
+  "titanreqiuem.configuration.logDirtBlock": "Log Dirt Block",
+  "titanreqiuem.configuration.magicNumberIntroduction": "Magic Number Text",
+  "titanreqiuem.configuration.magicNumber": "Magic Number"
+}
