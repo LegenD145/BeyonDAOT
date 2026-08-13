@@ -9,5 +9,19 @@
   "titanreqiuem.configuration.items": "Item List",
   "titanreqiuem.configuration.logDirtBlock": "Log Dirt Block",
   "titanreqiuem.configuration.magicNumberIntroduction": "Magic Number Text",
-  "titanreqiuem.configuration.magicNumber": "Magic Number"
+  "titanreqiuem.configuration.magicNumber": "Magic Number",
+  "item.titanreqiuem.bronze_medal": "Bronze Medal",
+  "item.titanreqiuem.silver_medal": "Silver Medal",
+  "item.titanreqiuem.gold_medal": "Gold Medal",
+  "item.titanreqiuem.royal_medal": "Royal Medal",
+  "item.titanreqiuem.marley_banknote_1": "$1 Banknote",
+  "item.titanreqiuem.marley_banknote_5": "$5 Banknote",
+  "item.titanreqiuem.marley_banknote_10": "$10 Banknote",
+  "item.titanreqiuem.marley_banknote_20": "$20 Banknote",
+  "item.titanreqiuem.marley_banknote_50": "$50 Banknote",
+  "item.titanreqiuem.marley_banknote_100": "$100 Banknote",
+  "block.titanreqiuem.gas_block": "Large Gas Canister",
+  "item.titanreqiuem.zero_hour_formula": "Zero Hour Formula",
+  "item.titanreqiuem.resilience_compound": "Resilience Compound",
+  "item.titanreqiuem.raptor_compound": "Raptor Compound"
 }

@@ -18,7 +18,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * won't apply and logs a warning.
  */
 @Mixin(targets = "daot.BladeItem", remap = false)
-public class BladeItemMixin {
+public class
+BladeItemMixin {
 
     /**
      * Intercepts hasThunderSpear(ItemStack) and redirects it to

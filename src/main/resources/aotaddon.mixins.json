@@ -1,12 +1,34 @@
 {
     "required": false,
+    "priority": 1100,
     "package": "com.aotaddon.mixin",
     "compatibilityLevel": "JAVA_21",
     "plugin": "com.aotaddon.mixin.AotAddonMixinPlugin",
     "mixins": [
         "BladeItemMixin",
         "ThunderSpearLoadMixin",
-        "ThunderSpearFireMixin"
+        "ThunderSpearFireMixin",
+        "WarhammerAbilityMixin",
+        "CrystalShellGrabMixin",
+        "BastionAbilityMixin",
+        "HelosJavelinMixin",
+        "ThunderSpearStackingMixin",
+        "ODMGasXpMixin",
+        "BladeDamageSkillMixin",
+        "APGDamageSkillMixin",
+        "ODMGasHUDHideMixin",
+        "ODMGearTooltipHideMixin",
+        "ODMAPGTooltipHideMixin",
+        "BladeReloadMixin",
+        "ZeroHourFormulaMixin",
+        "RaptorCompoundTransformMixin",
+        "RaptorDashTrackingMixin",
+        "BladeAttackTargetingMixin",
+        "JawNapeCombatMixin"
+
+    ],
+    "client": [
+        "HeadlessFemaleTitanGeoRenderMixin"
     ],
     "minVersion": "0.8"
 }

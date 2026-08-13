@@ -1,22 +1,20 @@
 package com.aotaddon.mixin;
-
+//if u can see this im going to leave
 import com.aotaddon.AotAddon;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
-import org.spongepowered.asm.mixin.extensibility.IMixinErrorHandler;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
+import org.spongepowered.asm.service.MixinService;
 
 import java.util.List;
 import java.util.Set;
 
 /**
- * Mixin plugin that gracefully skips any mixin whose target class
- * (daot.*) is not available on the classpath at apply time.
+ * Mixin plugin that guards all daot.* targeting mixins during mixin preparation.
  *
- * This handles the Sinytra Connector scenario where Danny's AoT
- * (a Fabric mod) may not be visible to NeoForge mixins during
- * early loading. Instead of crashing, we simply skip the mixin
- * and log a warning.
+ * Uses MixinService.getService().getBytecodeProvider().getClassBytes() to check
+ * class availability — reads raw bytecode without triggering static initializers,
+ * which is required to avoid the "Not bootstrapped" crash under Sinytra Connector.
  */
 public class AotAddonMixinPlugin implements IMixinConfigPlugin {
 
@@ -30,25 +28,21 @@ public class AotAddonMixinPlugin implements IMixinConfigPlugin {
         return null;
     }
 
-    /**
-     * Called before each mixin is applied.
-     * Returns false to skip the mixin if the target class is not found.
-     */
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        // Only guard mixins that target daot.* classes
         if (!targetClassName.startsWith("daot.")) return true;
 
         try {
-            Class.forName(targetClassName, false, this.getClass().getClassLoader());
-            return true; // Target found - apply the mixin
-        } catch (ClassNotFoundException e) {
+            org.objectweb.asm.tree.ClassNode node = MixinService.getService()
+                    .getBytecodeProvider()
+                    .getClassNode(targetClassName, true);
+            return node != null;
+        } catch (Exception e) {
             AotAddon.LOGGER.warn(
-                "[AotAddon] Skipping mixin {} - target class {} not found. " +
-                "Danny's AoT may not be loaded yet or is unavailable.",
-                mixinClassName, targetClassName
+                    "[AotAddon] Skipping mixin {} — target {} not available: {}",
+                    mixinClassName, targetClassName, e.getMessage()
             );
-            return false; // Skip gracefully instead of crashing
+            return false;
         }
     }
 
@@ -56,9 +50,7 @@ public class AotAddonMixinPlugin implements IMixinConfigPlugin {
     public void acceptTargets(Set<String> myTargets, Set<String> otherTargets) {}
 
     @Override
-    public List<String> getMixins() {
-        return null;
-    }
+    public List<String> getMixins() { return null; }
 
     @Override
     public void preApply(String targetClassName, ClassNode targetClass,

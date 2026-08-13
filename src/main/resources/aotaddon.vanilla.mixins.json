@@ -1,0 +1,12 @@
+{
+    "required": true,
+    "package": "com.aotaddon.mixin",
+    "compatibilityLevel": "JAVA_21",
+    "mixins": [
+        "RangedAttributeAccessor"
+    ],
+    "client": [
+        "PublicSystemMessageFilterMixin"
+    ],
+    "minVersion": "0.8"
+}

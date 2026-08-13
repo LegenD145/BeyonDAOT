@@ -1,7 +1,6 @@
 package com.aotaddon.util;
 
 import com.aotaddon.AotAddon;
-import com.aotaddon.config.AddonConfig;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
@@ -124,6 +123,8 @@ public class SpearHelper {
      */
     public static int getCapForPlayer(ServerPlayer player) {
         try {
+            int skillBonus = SkillTreeGearHelper.getSpearCapacityBonus(player);
+
             // BloodlineData.get(server) then .getBloodline(uuid)
             Class<?> bloodlineDataClass = Class.forName("daot.BloodlineData");
             Class<?> bloodlineTypeClass = Class.forName("daot.BloodlineType");
@@ -136,22 +137,22 @@ public class SpearHelper {
             Object bloodlineType = getBloodlineMethod.invoke(bloodlineData, player.getUUID());
 
             if (bloodlineType == null) {
-                return AddonConfig.DEFAULT_CAP.get();
+                return 2 + skillBonus;
             }
 
             // Compare by enum name as string — safe against recompiles
             String name = ((Enum<?>) bloodlineType).name().toUpperCase();
 
             return switch (name) {
-                case "ACKERMAN" -> AddonConfig.ACKERMAN_CAP.get();
-                case "ELDIAN"   -> AddonConfig.ELDIAN_CAP.get();
+                case "ACKERMAN" -> 4 + skillBonus;
+                case "ELDIAN"   -> 2 + skillBonus;
                 case "MARLEY", "MARLEYAN" -> 0;
-                default -> AddonConfig.DEFAULT_CAP.get();
+                default -> 2 + skillBonus;
             };
 
         } catch (Exception e) {
             AotAddon.LOGGER.error("[AotAddon] getCapForPlayer reflection failed: {}", e.getMessage());
-            return AddonConfig.DEFAULT_CAP.get();
+            return 2 + SkillTreeGearHelper.getSpearCapacityBonus(player);
         }
     }
 
