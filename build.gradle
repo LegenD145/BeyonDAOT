@@ -1,0 +1,210 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version '2.0.141'
+    id 'idea'
+}
+
+tasks.named('wrapper', Wrapper).configure {
+    distributionType = Wrapper.DistributionType.BIN
+}
+
+version = mod_version
+group = mod_group_id
+
+sourceSets.main.resources {
+    srcDir('src/generated/resources')
+    exclude("**/*.bbmodel")
+    exclude("src/generated/**/.cache")
+}
+
+repositories {
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'GeckoLib'
+                url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+            }
+        }
+        filter {
+            includeGroup('software.bernie.geckolib')
+        }
+    }
+
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'Modrinth'
+                url = 'https://api.modrinth.com/maven'
+            }
+        }
+        filter {
+            includeGroup('maven.modrinth')
+        }
+    }
+
+    // Xaero's World Map — official author maven, correct transitive deps (pulls in xaerolib too)
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'XaeroMaven'
+                url = 'https://chocolateminecraft.com/maven/'
+            }
+        }
+        filter {
+            includeGroup('xaero.map')
+            includeGroup('xaero.minimap')
+            includeGroup('xaero.lib')
+        }
+    }
+
+    // FTB Teams — official FTB maven
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'FTBMaven'
+                url = 'https://maven.ftb.dev/releases'
+            }
+        }
+        filter {
+            includeGroup('dev.ftb.mods')
+        }
+    }
+
+    // Architectury API — transitive dependency of FTB Library/Teams
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'ArchitecturyMaven'
+                url = 'https://maven.architectury.dev/'
+            }
+        }
+        filter {
+            includeGroup('dev.architectury')
+        }
+    }
+}
+
+base {
+    archivesName = mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+    version = project.neo_version
+
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    runs {
+        client {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        server {
+            server()
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        gameTestServer {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        data {
+            data()
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+        }
+
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+}
+
+dependencies {
+    compileOnly "software.bernie.geckolib:geckolib-neoforge-1.21.1:4.8.4"
+
+    // Inventory tab bar integrations — compile against these mods' classes without bundling
+    // them, so players who don't have a given mod installed aren't forced to download it.
+
+    // Xaero's World Map — verify against https://chocolateminecraft.com/maven/xaero/map if your
+    // pack runs a different build; this is the latest confirmed NeoForge 1.21.1 release.
+    compileOnly "xaero.map:xaeroworldmap-neoforge-1.21.1:1.41.0"
+
+    // FTB Teams — depends on FTB Library. Verify against https://maven.ftb.dev/releases if your
+    // pack runs different builds; these are the latest confirmed NeoForge 1.21.1 releases.
+    compileOnly "dev.ftb.mods:ftb-library-neoforge:2101.1.33"
+    compileOnly "dev.ftb.mods:ftb-teams-neoforge:2101.1.10"
+
+    // Legendary Survival Overhaul — confirmed Modrinth coordinates for 1.21.1-2.4.2. Check
+    // https://modrinth.com/mod/legendary-survival-overhaul/versions if your pack runs a newer one.
+    compileOnly "maven.modrinth:TQr3t8Sb:AgUpT99l"
+
+    // Sophisticated Backpacks needs its required library, Sophisticated Core, on the classpath
+    // too — BackpackScreen's superclass (StorageScreenBase) actually lives in Core, not Backpacks.
+    // Confirmed Modrinth coordinates for 1.21.1-1.3.91.1272 / 1.21.1-3.25.41.1683.
+    compileOnly "maven.modrinth:nmoqTijg:jO8S8zga"  // Sophisticated Core
+    compileOnly "maven.modrinth:TyCTlI4b:TiDxy94j"  // Sophisticated Backpacks
+}
+
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+    var replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from "src/main/templates"
+    into "build/generated/sources/modMetadata"
+}
+
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url "file://${project.projectDir}/repo"
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}
