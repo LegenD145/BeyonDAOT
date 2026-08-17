@@ -19,6 +19,13 @@ sourceSets.main.resources {
 }
 
 repositories {
+    mavenCentral()
+
+    maven {
+        name = 'RedlanceMinecraft'
+        url = 'https://repo.redlance.org/public'
+    }
+
     exclusiveContent {
         forRepository {
             maven {
@@ -140,6 +147,10 @@ configurations {
 }
 
 dependencies {
+    // DAOT already requires Player Animation Library at runtime.  This is only
+    // needed so the addon can compile against the same client animation API.
+    compileOnly "com.zigythebird.playeranim:PlayerAnimationLibNeo:1.1.5+mc.1.21.1"
+
     compileOnly "software.bernie.geckolib:geckolib-neoforge-1.21.1:4.8.4"
 
     // Inventory tab bar integrations — compile against these mods' classes without bundling

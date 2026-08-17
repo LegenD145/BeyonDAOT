@@ -1,6 +1,7 @@
 package com.aotaddon.mixin;
 
 import com.aotaddon.AotAddon;
+import com.aotaddon.access.JawLatchReflection;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -71,6 +72,9 @@ public class JawNapeCombatMixin {
 
     // jaw entity UUID -> id of the titan body it's clinging to (absent = not clinging)
     private static final Map<UUID, Integer> CLING_TARGET = new HashMap<>();
+    // jaw entity UUID -> {dx, dy, dz} offset from the target's position to hold while clinging,
+    // captured at the moment of latching so the jaw tracks a moving titan instead of a fixed point
+    private static final Map<UUID, double[]> CLING_OFFSET = new HashMap<>();
     // jaw entity UUID -> ticks remaining on the "jaw broken" lockout
     private static final Map<UUID, Integer> JAW_BROKEN = new HashMap<>();
     // jaw entity UUID -> (target titan UUID -> nape-bite count so far)
@@ -104,13 +108,66 @@ public class JawNapeCombatMixin {
 
             if (best == null) return; // nothing to cling to - fall through to vanilla wall-latch
 
-            CLING_TARGET.put(self.getUUID(), best.getId());
+            UUID jawUUID = self.getUUID();
+            double offX = self.getX() - best.getX();
+            double offY = self.getY() - best.getY();
+            double offZ = self.getZ() - best.getZ();
+
+            CLING_TARGET.put(jawUUID, best.getId());
+            CLING_OFFSET.put(jawUUID, new double[]{offX, offY, offZ});
+
             self.setDeltaMovement(0.0, 0.0, 0.0);
-            self.setNoGravity(true);
+
+            // flip DAOT's own real latch state - without this, isLatched() keeps
+            // returning false, so daot's tick loop never stops re-calling tryLatch()
+            // every tick and the chomp ability's own gating likely refuses to fire
+            // while "airborne and unlatched"
+            double len = Math.max(0.01, Math.sqrt(offX * offX + offZ * offZ));
+            JawLatchReflection.setLatchNormal(self, (float) (offX / len), (float) (offZ / len));
+            JawLatchReflection.setAnchor(self, self.getX(), self.getY(), self.getZ());
+            JawLatchReflection.setLatched(self, true);
 
             ci.cancel();
         } catch (Exception e) {
             AotAddon.LOGGER.error("[JawNapeCombat] tryLatch hook failed: {}", e.toString());
+        }
+    }
+
+    // =========================================================
+    // 1b) keep the anchor tracking the target each tick - a titan walks
+    //     around, unlike a wall, so a one-time anchor snap isn't enough
+    // =========================================================
+    @Inject(method = "method_5773", at = @At("HEAD"), remap = false, require = 0)
+    private void aotaddon$trackClingTargetIntermediary(CallbackInfo ci) {
+        aotaddon$trackClingTarget();
+    }
+
+    @Inject(method = "tick", at = @At("HEAD"), remap = false, require = 0)
+    private void aotaddon$trackClingTargetMojmap(CallbackInfo ci) {
+        aotaddon$trackClingTarget();
+    }
+
+    private void aotaddon$trackClingTarget() {
+        try {
+            LivingEntity self = (LivingEntity) (Object) this;
+            UUID jawUUID = self.getUUID();
+            Integer targetId = CLING_TARGET.get(jawUUID);
+            if (targetId == null) return;
+            if (!(self.level() instanceof ServerLevel serverLevel)) return;
+
+            Entity target = serverLevel.getEntity(targetId);
+            double[] offset = CLING_OFFSET.get(jawUUID);
+            if (target == null || !target.isAlive() || offset == null) {
+                CLING_TARGET.remove(jawUUID);
+                CLING_OFFSET.remove(jawUUID);
+                JawLatchReflection.setLatched(self, false);
+                return;
+            }
+
+            JawLatchReflection.setAnchor(self,
+                    target.getX() + offset[0], target.getY() + offset[1], target.getZ() + offset[2]);
+        } catch (Exception e) {
+            AotAddon.LOGGER.error("[JawNapeCombat] cling tracking failed: {}", e.toString());
         }
     }
 
@@ -136,8 +193,12 @@ public class JawNapeCombatMixin {
     @Inject(method = "unlatch", at = @At("HEAD"), remap = false)
     private void aotaddon$clearClingOnUnlatch(CallbackInfo ci) {
         LivingEntity self = (LivingEntity) (Object) this;
-        CLING_TARGET.remove(self.getUUID());
-        self.setNoGravity(false);
+        UUID jawUUID = self.getUUID();
+        CLING_TARGET.remove(jawUUID);
+        CLING_OFFSET.remove(jawUUID);
+        // don't force-set DATA_LATCHED false here - unlatch() itself already does
+        // that internally (see decompiled source, line ~1119); this hook only
+        // needs to clean up our own state
     }
 
     // =========================================================
@@ -163,6 +224,8 @@ public class JawNapeCombatMixin {
             Entity target = serverLevel.getEntity(targetId);
             if (target == null || !target.isAlive() || self.distanceToSqr(target) > CLING_SCAN * CLING_SCAN * 4) {
                 CLING_TARGET.remove(jawUUID);
+                CLING_OFFSET.remove(jawUUID);
+                JawLatchReflection.setLatched(self, false);
                 return;
             }
 

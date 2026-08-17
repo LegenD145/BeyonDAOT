@@ -3,6 +3,7 @@ package com.aotaddon;
 import com.aotaddon.access.ToggleConsentC2SPacket;
 import com.aotaddon.carry.ToggleGrabModeC2SPacket;
 import com.aotaddon.client.GasCheckKeyHandler;
+import com.aotaddon.client.GasCheckAnimation;
 import com.aotaddon.client.HelosHudRenderer;
 import com.aotaddon.client.ODMDiagnosticKeybind;
 import com.aotaddon.config.AddonConfig;
@@ -65,6 +66,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -156,8 +158,13 @@ public class AotAddon {
         NeoForge.EVENT_BUS.addListener(GasCheckKeyHandler::onClientTick);
         NeoForge.EVENT_BUS.addListener(com.aotaddon.client.HookAttachLimitHandler::onClientTick);
 
+        // Book menu keybind (M - K is taken by ODMDiagnosticKeybind.KEY_DIAGNOSE)
+        modEventBus.addListener(com.aotaddon.client.book.BookKeybind::registerKeyMapping);
+        NeoForge.EVENT_BUS.addListener(com.aotaddon.client.book.BookKeybind::onClientTick);
+
         // Inventory tab bar — client only
         if (FMLEnvironment.dist == Dist.CLIENT) {
+            modEventBus.addListener(GasCheckAnimation::onClientSetup);
             NeoForge.EVENT_BUS.register(new HelosHudRenderer());
             NeoForge.EVENT_BUS.register(new RewardPopupOverlay());
             NeoForge.EVENT_BUS.register(new CurrencyHudOverlay());

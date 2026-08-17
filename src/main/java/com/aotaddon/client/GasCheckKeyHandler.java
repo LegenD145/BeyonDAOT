@@ -66,6 +66,7 @@ public final class GasCheckKeyHandler {
         String text = GasTierText.resolve(gas, maxGas);
         if (text != null) {
             mc.gui.setOverlayMessage(Component.literal(text), false);
+            GasCheckAnimation.play(mc.player);
         }
     }
 }
