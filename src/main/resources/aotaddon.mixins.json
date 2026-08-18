@@ -24,11 +24,13 @@
         "RaptorCompoundTransformMixin",
         "RaptorDashTrackingMixin",
         "BladeAttackTargetingMixin",
-        "JawNapeCombatMixin"
-
+        "JawNapeCombatMixin",
+        "ShifterHotbarSlotLockMixin",
+        "TitanEntityRandomRetargetMixin"
     ],
     "client": [
-        "HeadlessFemaleTitanGeoRenderMixin"
+        "HeadlessFemaleTitanGeoRenderMixin",
+        "ODMGasSuppressionMixin"
     ],
     "minVersion": "0.8"
 }

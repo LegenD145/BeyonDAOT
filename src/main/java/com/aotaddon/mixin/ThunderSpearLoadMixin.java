@@ -43,7 +43,7 @@ public class ThunderSpearLoadMixin {
 
             // --- Step 1: Marleyan block ---
             try {
-                if (SpearHelper.isMarleyan(player)) {
+                if (SpearHelper.isMarleyBlocked(player)) {
                     SpearHelper.sendMarleyanBlock(player);
                     return;
                 }

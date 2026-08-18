@@ -7,7 +7,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 
-@EventBusSubscriber(modid = "aotaddon")
+@EventBusSubscriber(modid = "titanreqiuem")
 public class SkillTreeArmorXP {
 
     private static final int MAX_LEVEL = 20;

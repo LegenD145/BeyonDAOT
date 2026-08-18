@@ -11,8 +11,7 @@ import net.neoforged.neoforge.client.settings.KeyConflictContext;
  * Keybind for opening the player's book menu (Stats / Talents / Settings /
  * Reputation / [unassigned]).
  *
- * K is already taken by ODMDiagnosticKeybind.KEY_DIAGNOSE, so this uses M
- * per Alex's call.
+ * K is already taken by ODMDiagnosticKeybind.KEY_DIAGNOSE, so this uses M.
  *
  * Registration required in AotAddon's constructor, same pattern as
  * GasCheckKeyHandler:
@@ -46,7 +45,6 @@ public final class BookKeybind {
         if (mc.player == null) {
             return;
         }
-        // Don't steal focus from an already-open screen (chat, another GUI, etc.)
         if (mc.screen != null) {
             return;
         }

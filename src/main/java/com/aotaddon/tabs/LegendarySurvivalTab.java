@@ -1,5 +1,6 @@
 package com.aotaddon.tabs;
 
+import com.aotaddon.AotAddon;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -9,14 +10,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.fml.ModList;
-import sfiomn.legendarysurvivaloverhaul.client.screens.BodyHealthScreen;
+
+import java.lang.reflect.Constructor;
 
 /**
- * Opens Legendary Survival Overhaul's body-damage screen in view-only mode. BodyHealthScreen has
- * only one constructor (Player, InteractionHand, boolean, int, float, int) — passing hand=null
- * makes the screen's own init() disable every heal button while still populating body-part
- * damage from AttachmentUtil, so this is a real view-only mode already built into the mod, not
- * something we're faking.
+ * Legendary Survival Overhaul body screen tab. Uses reflection so LSO is optional.
  */
 public class LegendarySurvivalTab extends TabBase {
 
@@ -42,13 +40,38 @@ public class LegendarySurvivalTab extends TabBase {
 
     @Override
     public void onClick(Player player) {
-        Minecraft.getInstance().setScreen(
-                new BodyHealthScreen(player, null, false, 0, 0.0f, 0));
+        if (!isLsoLoaded()) {
+            return;
+        }
+        try {
+            Class<?> screenClass = Class.forName(
+                    "sfiomn.legendarysurvivaloverhaul.client.screens.BodyHealthScreen");
+            Constructor<?> ctor = screenClass.getConstructor(
+                    Player.class,
+                    net.minecraft.world.InteractionHand.class,
+                    boolean.class,
+                    int.class,
+                    float.class,
+                    int.class);
+            Screen bodyScreen = (Screen) ctor.newInstance(player, null, false, 0, 0.0f, 0);
+            Minecraft.getInstance().setScreen(bodyScreen);
+        } catch (Exception e) {
+            AotAddon.LOGGER.warn("[AotAddon] Failed to open LSO body tab: {}", e.getMessage());
+        }
     }
 
     @Override
     public boolean isCurrentlyActive(Class<? extends Screen> currentScreenClass) {
-        return BodyHealthScreen.class.equals(currentScreenClass);
+        if (!isLsoLoaded()) {
+            return false;
+        }
+        try {
+            Class<?> screenClass = Class.forName(
+                    "sfiomn.legendarysurvivaloverhaul.client.screens.BodyHealthScreen");
+            return screenClass.isAssignableFrom(currentScreenClass);
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.aotaddon.tabs;
 
+import com.aotaddon.AotAddon;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
@@ -10,16 +11,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.p3pp3rf1y.sophisticatedbackpacks.client.gui.BackpackScreen;
-import net.p3pp3rf1y.sophisticatedbackpacks.network.BackpackOpenPayload;
+
+import java.lang.reflect.Constructor;
 
 /**
- * Sends the same no-arg BackpackOpenPayload the mod's own default keybind uses (see
- * KeybindHandler line ~177). Server-side, BackpackOpenPayload#handlePayload's
- * findAndOpenFirstBackpack walks every registered PlayerInventoryHandler ("main", "offhand",
- * and — critically — "curios" when Curios + the mod's CuriosCompat are both present) and opens
- * whichever backpack it finds first. We deliberately do NOT hand-roll our own Curios slot lookup:
- * the mod already resolves the equipped-backpack case end to end.
+ * Sophisticated Backpacks integration tab. Uses reflection so the mod is optional.
  */
 public class SophisticatedBackpacksTab extends TabBase {
 
@@ -45,12 +41,32 @@ public class SophisticatedBackpacksTab extends TabBase {
 
     @Override
     public void onClick(Player player) {
-        PacketDistributor.sendToServer((CustomPacketPayload) new BackpackOpenPayload());
+        if (!isSophisticatedBackpacksLoaded()) {
+            return;
+        }
+        try {
+            Class<?> payloadClass = Class.forName(
+                    "net.p3pp3rf1y.sophisticatedbackpacks.network.BackpackOpenPayload");
+            Constructor<?> ctor = payloadClass.getConstructor();
+            CustomPacketPayload payload = (CustomPacketPayload) ctor.newInstance();
+            PacketDistributor.sendToServer(payload);
+        } catch (Exception e) {
+            AotAddon.LOGGER.warn("[AotAddon] Failed to open Sophisticated Backpacks tab: {}", e.getMessage());
+        }
     }
 
     @Override
     public boolean isCurrentlyActive(Class<? extends Screen> currentScreenClass) {
-        return BackpackScreen.class.equals(currentScreenClass);
+        if (!isSophisticatedBackpacksLoaded()) {
+            return false;
+        }
+        try {
+            Class<?> screenClass = Class.forName(
+                    "net.p3pp3rf1y.sophisticatedbackpacks.client.gui.BackpackScreen");
+            return screenClass.isAssignableFrom(currentScreenClass);
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.aotaddon.util;
 
 import com.aotaddon.AotAddon;
+import com.aotaddon.config.AddonConfig;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
@@ -137,23 +138,32 @@ public class SpearHelper {
             Object bloodlineType = getBloodlineMethod.invoke(bloodlineData, player.getUUID());
 
             if (bloodlineType == null) {
-                return 2 + skillBonus;
+                return AddonConfig.DEFAULT_CAP.get() + skillBonus;
             }
 
             // Compare by enum name as string — safe against recompiles
             String name = ((Enum<?>) bloodlineType).name().toUpperCase();
 
             return switch (name) {
-                case "ACKERMAN" -> 4 + skillBonus;
-                case "ELDIAN"   -> 2 + skillBonus;
-                case "MARLEY", "MARLEYAN" -> 0;
-                default -> 2 + skillBonus;
+                case "ACKERMAN" -> AddonConfig.ACKERMAN_CAP.get() + skillBonus;
+                case "ELDIAN"   -> AddonConfig.ELDIAN_CAP.get() + skillBonus;
+                case "MARLEY", "MARLEYAN" -> AddonConfig.MARLEY_BLOCKED.get()
+                        ? 0
+                        : AddonConfig.DEFAULT_CAP.get() + skillBonus;
+                default -> AddonConfig.DEFAULT_CAP.get() + skillBonus;
             };
 
         } catch (Exception e) {
             AotAddon.LOGGER.error("[AotAddon] getCapForPlayer reflection failed: {}", e.getMessage());
-            return 2 + SkillTreeGearHelper.getSpearCapacityBonus(player);
+            return AddonConfig.DEFAULT_CAP.get() + SkillTreeGearHelper.getSpearCapacityBonus(player);
         }
+    }
+
+    /**
+     * True when this player is Marleyan and thunder-spear loading is config-blocked.
+     */
+    public static boolean isMarleyBlocked(ServerPlayer player) {
+        return AddonConfig.MARLEY_BLOCKED.get() && isMarleyan(player);
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.aotaddon.tabs;
 
+import com.aotaddon.AotAddon;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -9,17 +10,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.fml.ModList;
-import xaero.map.WorldMapSession;
-import xaero.map.gui.GuiMap;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 /**
- * Opens Xaero's fullscreen world map. Confirmed against the decompiled xaero source:
- * WorldMapSession.getCurrentSession().getMapProcessor() is the real pattern the mod itself uses
- * (see SupportXaeroWorldmap.getWorldMapScreenForOption), and getCurrentSession() can return null
- * if Xaero hasn't finished initializing yet — guarded below.
- *
- * Registration on other tab screens (LSO, FTB Teams, Sophisticated Backpacks, GearPouchScreen)
- * happens once each of those tabs exists too — see registerOnScreens.
+ * Opens Xaero's fullscreen world map. All Xaero API access is via reflection so
+ * this class loads even when xaeroworldmap is not installed.
  */
 public class XaerosMapTab extends TabBase {
 
@@ -36,8 +33,6 @@ public class XaerosMapTab extends TabBase {
             return;
         }
         TabsMenu.addTabToScreen(this, InventoryScreen.class, p -> 176, p -> 166, 10);
-        // Add TabsMenu.addTabToScreen(...) for GearPouchScreen / LSO / FTB Teams / Sophisticated
-        // Backpacks screens as each comes online, same as ChestTab does.
     }
 
     @Override
@@ -47,20 +42,46 @@ public class XaerosMapTab extends TabBase {
 
     @Override
     public void onClick(Player player) {
-        WorldMapSession session = WorldMapSession.getCurrentSession();
-        if (session == null) {
-            // Xaero's map isn't initialized yet (e.g. very early after joining) — nothing to open.
+        if (!isXaeroLoaded()) {
             return;
         }
-        Screen current = Minecraft.getInstance().screen;
-        GuiMap mapScreen = new GuiMap(current, null, session.getMapProcessor(),
-                Minecraft.getInstance().getCameraEntity());
-        Minecraft.getInstance().setScreen(mapScreen);
+        try {
+            Class<?> sessionClass = Class.forName("xaero.map.WorldMapSession");
+            Method getCurrentSession = sessionClass.getMethod("getCurrentSession");
+            Object session = getCurrentSession.invoke(null);
+            if (session == null) {
+                return;
+            }
+
+            Method getMapProcessor = sessionClass.getMethod("getMapProcessor");
+            Object mapProcessor = getMapProcessor.invoke(session);
+
+            Screen current = Minecraft.getInstance().screen;
+            Object camera = Minecraft.getInstance().getCameraEntity();
+
+            Class<?> guiMapClass = Class.forName("xaero.map.gui.GuiMap");
+            Class<?> mapProcessorClass = Class.forName("xaero.map.MapProcessor");
+            Class<?> entityClass = Class.forName("net.minecraft.world.entity.Entity");
+            Constructor<?> ctor = guiMapClass.getConstructor(
+                    Screen.class, guiMapClass, mapProcessorClass, entityClass);
+            Screen mapScreen = (Screen) ctor.newInstance(current, null, mapProcessor, camera);
+            Minecraft.getInstance().setScreen(mapScreen);
+        } catch (Exception e) {
+            AotAddon.LOGGER.warn("[AotAddon] Failed to open Xaero map tab: {}", e.getMessage());
+        }
     }
 
     @Override
     public boolean isCurrentlyActive(Class<? extends Screen> currentScreenClass) {
-        return GuiMap.class.equals(currentScreenClass);
+        if (!isXaeroLoaded()) {
+            return false;
+        }
+        try {
+            Class<?> guiMapClass = Class.forName("xaero.map.gui.GuiMap");
+            return guiMapClass.isAssignableFrom(currentScreenClass);
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 
     @Override
