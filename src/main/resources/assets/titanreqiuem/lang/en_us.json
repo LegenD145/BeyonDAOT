@@ -1,5 +1,6 @@
 {
   "itemGroup.titanreqiuem": "Titan Requiem",
+  "itemGroup.titanreqiuem.beyond_the_walls": "Beyond The Walls",
   "block.titanreqiuem.example_block": "Example Block",
   "item.titanreqiuem.example_item": "Example Item",
   "titanreqiuem.configuration.title": "TitanReqiuem Configs",
@@ -34,6 +35,8 @@
   "titanreqiuem.book.coming_soon": "Coming Soon",
   "titanreqiuem.book.value.dash": "—",
   "titanreqiuem.book.value.off": "Off",
+  "titanreqiuem.campfire.sit": "[%s] Sit",
+  "titanreqiuem.campfire.reopen": "[%s] Book",
   "item.titanreqiuem.bronze_medal": "Bronze Medal",
   "item.titanreqiuem.silver_medal": "Silver Medal",
   "item.titanreqiuem.gold_medal": "Gold Medal",

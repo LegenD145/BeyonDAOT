@@ -5,9 +5,9 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.AABB;
-import com.aotaddon.currency.MedalData;
 import com.aotaddon.currency.BanknoteData;
 import com.aotaddon.currency.CurrencyFaction;
+import com.aotaddon.currency.MedalData;
 import java.util.List;
 import java.util.Set;
 
@@ -65,16 +65,8 @@ public class FamilyEventHandler {
     public static void onPlayerFirstJoin(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
 
-        // Already rewarded - nothing more to do regardless of bloodline.
         if (player.getPersistentData().getBoolean("startingBonusGranted")) return;
 
-        // Bloodline is only ever set via /setbloodline while a player is
-        // online, so it's never tagged yet at a brand new player's literal
-        // first join. Instead of gating on "first join ever", we check
-        // EVERY login and grant once we see a tagged bloodline that hasn't
-        // been rewarded yet - covers "tagged before first join" (impossible
-        // today, but harmless if that ever changes) and the realistic case
-        // of "tagged sometime after joining, reward lands on their next login".
         CurrencyFaction.Faction faction = CurrencyFaction.get(player);
         if (faction == CurrencyFaction.Faction.NONE) return;
 
@@ -131,7 +123,6 @@ public class FamilyEventHandler {
                                         "§a[Welcome] §fYou earned §e1 medal§f for welcoming " + newPlayerName + "!")
                                 .withStyle(ChatFormatting.GREEN));
                     }
-                    // NONE faction: no reward, since we don't know which currency to grant
                 }
                 break;
             }

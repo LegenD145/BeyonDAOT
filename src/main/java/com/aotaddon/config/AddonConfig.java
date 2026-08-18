@@ -41,6 +41,12 @@ public class AddonConfig {
     public static final ModConfigSpec.DoubleValue ODM_WALL_CLIMB_SPEED;
     public static final ModConfigSpec.DoubleValue ODM_WALL_DESCEND_SPEED;
 
+    // Campfire sit heal: seconds to go from empty to full HP
+    public static final ModConfigSpec.IntValue CAMPFIRE_SIT_FULL_HEAL_SECONDS;
+
+    // Combat tag duration
+    public static final ModConfigSpec.IntValue COMBAT_TAG_SECONDS;
+
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
@@ -160,6 +166,32 @@ public class AddonConfig {
                         "Default 0.15 — roughly 1 XP per ~7 gas spent."
                 )
                 .defineInRange("xp_per_gas_unit", 0.15, 0.0, 100.0);
+
+        builder.pop();
+
+        // ------------------------------------------------------------------
+        builder.comment("Campfire sit healing — only while seated, no standing regen").push("campfire_sit");
+
+        CAMPFIRE_SIT_FULL_HEAL_SECONDS = builder
+                .comment(
+                        "Seconds of sitting to go from 0 HP to full max health.",
+                        "Scales with max health. 0 disables sit healing.",
+                        "Change in-game with /campfireheal <seconds>."
+                )
+                .defineInRange("full_heal_seconds", 20, 0, 600);
+
+        builder.pop();
+
+        // ------------------------------------------------------------------
+        builder.comment("Combat tag duration after taking damage").push("combat_tag");
+
+        COMBAT_TAG_SECONDS = builder
+                .comment(
+                        "Seconds a player stays combat-tagged after taking damage.",
+                        "0 disables combat tagging.",
+                        "Change in-game with /combattag <seconds>."
+                )
+                .defineInRange("duration_seconds", 80, 0, 600);
 
         builder.pop();
 

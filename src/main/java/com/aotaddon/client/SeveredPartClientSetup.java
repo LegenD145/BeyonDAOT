@@ -18,5 +18,7 @@ public class SeveredPartClientSetup {
     @SubscribeEvent
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntities.SEVERED_PART.get(), SeveredPartRenderer::new);
+        event.registerEntityRenderer(ModEntities.CAMPFIRE_SEAT.get(),
+                net.minecraft.client.renderer.entity.NoopRenderer::new);
     }
 }

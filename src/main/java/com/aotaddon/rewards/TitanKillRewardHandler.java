@@ -3,6 +3,7 @@ package com.aotaddon.rewards;
 import com.aotaddon.currency.BanknoteData;
 import com.aotaddon.currency.CurrencyFaction;
 import com.aotaddon.currency.MedalData;
+import com.aotaddon.network.PlayerCardSyncPayload;
 import com.aotaddon.network.RewardPopupPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,18 +21,16 @@ import java.util.List;
  *   NeoForge.EVENT_BUS.addListener(TitanKillRewardHandler::onLivingDeath);
  *
  * Current scope:
- *   - Honor Points: awarded to any killer, via HonorData (persistentData, matches
- *     MedalData/BanknoteData style).
- *   - Medals/Banknotes: routed by CurrencyFaction — Eldian killers get Medals via
- *     MedalData, Marley killers get Banknotes via BanknoteData, NONE gets neither
- *     (currency skipped, other lines still show).
+ *   - Honor Points: awarded to any killer, via HonorData.
+ *   - Medals/Banknotes: routed by DAOT bloodline — Eldian killers get medals,
+ *     Marley killers get banknotes, other bloodlines get neither.
  *   - Reputation: NOT wired to a real system yet — reputation.js on the KubeJS
  *     side is still the source of truth for rep. This only shows the number in
  *     the popup text; it does NOT write reputation anywhere. Wire this up once
  *     reputation is ported to Java, using whatever persistentData key
  *     reputation.js already uses (don't invent a new key here).
  *   - Military branch (Scout/Garrison/MP) gating: NOT implemented — that system
- *     doesn't exist in Java yet either. Everyone eligible by faction currently
+ *     doesn't exist in Java yet either. Everyone eligible by bloodline currently
  *     gets the full medal/banknote amount from the table regardless of branch.
  */
 public final class TitanKillRewardHandler {
@@ -65,7 +64,7 @@ public final class TitanKillRewardHandler {
 
         List<String> lines = new ArrayList<>();
 
-        // Line 1: kill + currency (Medals for Eldian, Banknotes for Marley, skipped for NONE)
+        // Line 1: kill + currency (medals for Eldian, banknotes for Marley)
         CurrencyFaction.Faction faction = CurrencyFaction.get(killer);
         String currencyLabel = null;
         if (currencyGain > 0 && faction == CurrencyFaction.Faction.ELDIAN) {
@@ -94,8 +93,9 @@ public final class TitanKillRewardHandler {
             lines.add("+ Honor | +" + formatNumber(honorGain));
         }
 
-        // Line 4: combat experience (display only — combat/body-stat system not built yet)
+        // Line 4: combat experience
         if (combatGain != 0) {
+            CombatXpData.addBalance(killer, combatGain);
             lines.add("+ Combat | +" + formatNumber(combatGain) + " Experience");
         }
 
@@ -110,5 +110,6 @@ public final class TitanKillRewardHandler {
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         HonorData.syncOnLogin(player);
+        PlayerCardSyncPayload.send(player);
     }
 }

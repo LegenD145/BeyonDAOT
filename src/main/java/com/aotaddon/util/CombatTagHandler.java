@@ -1,24 +1,27 @@
 package com.aotaddon.util;
 
 import com.aotaddon.combat.CombatTagData;
+import com.aotaddon.config.AddonConfig;
 import com.aotaddon.registry.ModAttachments;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 public class CombatTagHandler {
 
-    private static final long TAG_DURATION_TICKS = 1600L; // 80s * 20 ticks/sec
-
     public static void onLivingDamage(LivingDamageEvent.Post event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         if (event.getNewDamage() <= 0) return; // only real, post-mitigation damage tags
 
+        int seconds = AddonConfig.COMBAT_TAG_SECONDS.get();
+        if (seconds <= 0) return;
+
         CombatTagData data = player.getData(ModAttachments.COMBAT_TAG);
-        data.combatExpiryTick = player.level().getGameTime() + TAG_DURATION_TICKS;
+        data.combatExpiryTick = player.level().getGameTime() + (seconds * 20L);
     }
 
     public static void onServerTick(ServerTickEvent.Post event) {
@@ -49,7 +52,7 @@ public class CombatTagHandler {
         }
     }
 
-    public static boolean isInCombat(ServerPlayer player) {
+    public static boolean isInCombat(Player player) {
         CombatTagData data = player.getData(ModAttachments.COMBAT_TAG);
         return data.combatExpiryTick > player.level().getGameTime();
     }

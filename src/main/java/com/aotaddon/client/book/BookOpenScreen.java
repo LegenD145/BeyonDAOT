@@ -7,7 +7,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
+
+import java.lang.reflect.Field;
 
 /**
  * Opened book: ONE spread texture (book_page.png) spanning both pages.
@@ -114,16 +118,37 @@ public class BookOpenScreen extends BookScreenBase {
         int avatarZoom = Math.max(1, 30 * avatarH / 71);
 
         gfx.enableScissor(splashX, splashY, splashX + splashDisplayW, splashY + splashDisplayH);
-        InventoryScreen.renderEntityInInventoryFollowsMouse(
-                gfx,
-                avatarX, avatarY,
-                avatarX + avatarW, avatarY + avatarH,
-                avatarZoom,
-                0.0625f,
-                mouseX, mouseY,
-                player
-        );
+        renderStandingAvatar(gfx, avatarX, avatarY, avatarX + avatarW, avatarY + avatarH,
+                avatarZoom, mouseX, mouseY, player);
         gfx.disableScissor();
+    }
+
+    /**
+     * InventoryScreen draws the live player, so a campfire sit would show
+     * seated. Temporarily stand (and detach the seat visually) for this blit only.
+     */
+    private void renderStandingAvatar(GuiGraphics gfx, int x1, int y1, int x2, int y2,
+                                      int zoom, int mouseX, int mouseY, Player player) {
+        Pose prevPose = player.getPose();
+        Entity prevVehicle = player.getVehicle();
+        setVehicleField(player, null);
+        player.setPose(Pose.STANDING);
+        try {
+            InventoryScreen.renderEntityInInventoryFollowsMouse(
+                    gfx, x1, y1, x2, y2, zoom, 0.0625f, mouseX, mouseY, player);
+        } finally {
+            setVehicleField(player, prevVehicle);
+            player.setPose(prevPose);
+        }
+    }
+
+    private static void setVehicleField(Entity passenger, Entity vehicle) {
+        try {
+            Field field = Entity.class.getDeclaredField("vehicle");
+            field.setAccessible(true);
+            field.set(passenger, vehicle);
+        } catch (ReflectiveOperationException ignored) {
+        }
     }
 
     @Override

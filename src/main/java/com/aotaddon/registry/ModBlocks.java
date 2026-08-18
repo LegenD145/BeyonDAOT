@@ -20,7 +20,8 @@ public class ModBlocks {
                     () -> new GasCanisterBlock(BlockBehaviour.Properties.of()
                             .mapColor(MapColor.METAL)
                             .strength(2.0f, 6.0f)
-                            .sound(SoundType.METAL)));
+                            .sound(SoundType.METAL)
+                            .noOcclusion()));
 
     public static void register(net.neoforged.bus.api.IEventBus bus) {
         BLOCKS.register(bus);

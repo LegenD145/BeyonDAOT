@@ -8,6 +8,7 @@ import com.aotaddon.client.HelosHudRenderer;
 import com.aotaddon.client.ODMDiagnosticKeybind;
 import com.aotaddon.config.AddonConfig;
 import com.aotaddon.currency.BalanceCommand;
+import com.aotaddon.currency.SetResidenceCommand;
 import com.aotaddon.family.FamilyEventHandler;
 import com.aotaddon.family.SetFamilyCommand;
 import com.aotaddon.campfire.CampfireRegenHandler;
@@ -22,6 +23,7 @@ import com.aotaddon.network.ShiftlockTogglePayload;
 import com.aotaddon.network.ShiftlockStateSyncPayload;
 import com.aotaddon.network.DodgeStartPayload;
 import com.aotaddon.network.HorseWhistlePayload;
+import com.aotaddon.network.SitCampfirePayload;
 import com.aotaddon.network.HeadlessTitanSyncPayload;
 import com.aotaddon.network.OdmGasXpPayload;
 import com.aotaddon.network.SkillEffectPayload;
@@ -29,6 +31,7 @@ import com.aotaddon.network.TrailEffectPayload;
 import com.aotaddon.network.RewardPopupPayload;
 import com.aotaddon.network.HonorSyncPayload;
 import com.aotaddon.network.CurrencySyncPayload;
+import com.aotaddon.network.PlayerCardSyncPayload;
 import com.aotaddon.network.RevealIdentityPayload;
 import com.aotaddon.network.IdentityFullSyncPayload;
 import com.aotaddon.rewards.CurrencySyncTicker;
@@ -40,6 +43,7 @@ import com.aotaddon.client.CustomHeartOverlay;
 import com.aotaddon.registry.ModAttachments;
 import com.aotaddon.registry.ModBlocks;
 import com.aotaddon.registry.ModBlockEntities;
+import com.aotaddon.registry.ModCreativeTabs;
 import com.aotaddon.registry.ModItems;
 import com.aotaddon.tabs.ChestTab;
 import com.aotaddon.tabs.FtbTeamsTab;
@@ -91,6 +95,7 @@ public class AotAddon {
 
         // Items (medals, gas canister block item)
         ModItems.ITEMS.register(modEventBus);
+        ModCreativeTabs.register(modEventBus);
 
         // Severed body part entity (decapitation, limb loss)
         com.aotaddon.registry.ModEntities.register(modEventBus);
@@ -111,9 +116,15 @@ public class AotAddon {
         NeoForge.EVENT_BUS.addListener((RegisterCommandsEvent e) ->
                 SetFamilyCommand.register(e.getDispatcher()));
         NeoForge.EVENT_BUS.addListener((RegisterCommandsEvent e) ->
+                SetResidenceCommand.register(e.getDispatcher()));
+        NeoForge.EVENT_BUS.addListener((RegisterCommandsEvent e) ->
                 BalanceCommand.register(e.getDispatcher()));
         NeoForge.EVENT_BUS.addListener((RegisterCommandsEvent e) ->
                 com.aotaddon.command.PurCommand.register(e.getDispatcher()));
+        NeoForge.EVENT_BUS.addListener((RegisterCommandsEvent e) ->
+                com.aotaddon.command.CampfireHealCommand.register(e.getDispatcher()));
+        NeoForge.EVENT_BUS.addListener((RegisterCommandsEvent e) ->
+                com.aotaddon.command.CombatTagCommand.register(e.getDispatcher()));
 
         // Family events
         NeoForge.EVENT_BUS.addListener(FamilyEventHandler::onPlayerLogin);
@@ -170,6 +181,7 @@ public class AotAddon {
             NeoForge.EVENT_BUS.register(new PdSkullOverlay());
             NeoForge.EVENT_BUS.register(new CustomHeartOverlay());
             NeoForge.EVENT_BUS.register(new com.aotaddon.client.SkillCooldownOverlay());
+            NeoForge.EVENT_BUS.register(new com.aotaddon.client.CampfireSitOverlay());
 
             // Anti-metagaming: cancel nametag render for unrevealed players
             NeoForge.EVENT_BUS.addListener(IdentityNametagHandler::onRenderNameTag);
@@ -260,6 +272,12 @@ public class AotAddon {
         );
 
         registrar.playToServer(
+                SitCampfirePayload.TYPE,
+                SitCampfirePayload.STREAM_CODEC,
+                SitCampfirePayload::handle
+        );
+
+        registrar.playToServer(
                 ToggleConsentC2SPacket.TYPE,
                 ToggleConsentC2SPacket.STREAM_CODEC,
                 ToggleConsentC2SPacket::handle
@@ -287,6 +305,12 @@ public class AotAddon {
                 CurrencySyncPayload.TYPE,
                 CurrencySyncPayload.STREAM_CODEC,
                 CurrencySyncPayload::handle
+        );
+
+        registrar.playToClient(
+                PlayerCardSyncPayload.TYPE,
+                PlayerCardSyncPayload.STREAM_CODEC,
+                PlayerCardSyncPayload::handle
         );
 
         registrar.playToClient(

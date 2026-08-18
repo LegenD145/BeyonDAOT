@@ -56,8 +56,7 @@ public class CurrencyHudOverlay {
         int x = screenW - MARGIN_RIGHT - rowWidth;
         drawRow(graphics, mc, HONOR_ICON, honorText, x, y);
 
-        // Second row (above Honor): Medals/Banknotes, whichever matches the player's faction —
-        // resolved server-side, client just displays the synced number. No digit cap.
+        // Second row (above Honor): medals or banknotes from DAOT bloodline.
         int y2 = y - ROW_HEIGHT;
         String currencyText = formatBalance(ClientCurrencyState.getBalance());
         int rowWidth2 = ICON_SIZE + ICON_TEXT_GAP + mc.font.width(currencyText);

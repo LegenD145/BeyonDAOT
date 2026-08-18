@@ -36,11 +36,11 @@ public final class BookKeybind {
 
     public static void onClientTick(ClientTickEvent.Post event) {
         while (OPEN_BOOK_KEY.consumeClick()) {
-            openBook();
+            openCover();
         }
     }
 
-    private static void openBook() {
+    public static void openCover() {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) {
             return;

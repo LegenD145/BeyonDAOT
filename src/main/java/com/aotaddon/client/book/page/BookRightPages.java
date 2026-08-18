@@ -1,5 +1,8 @@
 package com.aotaddon.client.book.page;
 
+import com.aotaddon.client.ClientCardStats;
+import com.aotaddon.client.ClientCurrencyState;
+import com.aotaddon.client.ClientHonorData;
 import com.aotaddon.client.ConsentClientSetup;
 import com.aotaddon.client.GrabModeClientSetup;
 import com.aotaddon.client.ODMDiagnosticKeybind;
@@ -10,8 +13,8 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.network.chat.Component;
 
 /**
- * Static tab-content layouts. Drawn on the left page. Values are placeholders
- * (dashes / zeros / Off) until live data is synced in a later pass.
+ * Tab-content layouts drawn on the left page. Stats honor/currency/identity
+ * come from client caches synced from the server.
  */
 public final class BookRightPages {
 
@@ -53,19 +56,31 @@ public final class BookRightPages {
         y += 8;
         y = drawRow(gfx, font, x, y, innerW,
                 Component.translatable("titanreqiuem.book.stats.honor"),
-                Component.translatable("titanreqiuem.book.value.dash"));
+                Component.literal(formatStatNumber(ClientHonorData.getBalance())));
         y = drawRow(gfx, font, x, y, innerW,
                 Component.translatable("titanreqiuem.book.stats.currency"),
-                Component.literal("0"));
+                Component.literal(String.valueOf(ClientCurrencyState.getBalance())));
         y = drawRow(gfx, font, x, y, innerW,
                 Component.translatable("titanreqiuem.book.stats.family"),
-                Component.translatable("titanreqiuem.book.value.dash"));
+                labeledOrDash(ClientCardStats.getFamily()));
         y = drawRow(gfx, font, x, y, innerW,
                 Component.translatable("titanreqiuem.book.stats.bloodline"),
-                Component.translatable("titanreqiuem.book.value.dash"));
+                labeledOrDash(ClientCardStats.getBloodline()));
         drawRow(gfx, font, x, y, innerW,
                 Component.translatable("titanreqiuem.book.stats.combat_xp"),
-                Component.literal("0"));
+                Component.literal(formatStatNumber(ClientCardStats.getCombatXp())));
+    }
+
+    private static Component labeledOrDash(String value) {
+        if (value == null || value.isBlank()) {
+            return Component.translatable("titanreqiuem.book.value.dash");
+        }
+        String pretty = value.substring(0, 1).toUpperCase() + value.substring(1).toLowerCase();
+        return Component.literal(pretty);
+    }
+
+    private static String formatStatNumber(double value) {
+        return (value == Math.floor(value)) ? String.valueOf((long) value) : String.valueOf(value);
     }
 
     private static void renderTalents(GuiGraphics gfx, Font font, int x, int y, int innerW) {
