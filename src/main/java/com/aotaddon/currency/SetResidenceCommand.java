@@ -1,10 +1,10 @@
 package com.aotaddon.currency;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 
 /**
@@ -18,34 +18,21 @@ public class SetResidenceCommand {
                 Commands.literal("setresidence")
                         .requires(src -> src.hasPermission(2))
                         .then(
-                                Commands.argument("player", StringArgumentType.word())
+                                Commands.argument("player", EntityArgument.player())
                                         .then(Commands.literal("eldia").executes(ctx ->
-                                                execute(ctx.getSource(), StringArgumentType.getString(ctx, "player"), "eldia")))
+                                                execute(ctx.getSource(), EntityArgument.getPlayer(ctx, "player"), "eldia")))
                                         .then(Commands.literal("marley").executes(ctx ->
-                                                execute(ctx.getSource(), StringArgumentType.getString(ctx, "player"), "marley")))
+                                                execute(ctx.getSource(), EntityArgument.getPlayer(ctx, "player"), "marley")))
                                         .then(Commands.literal("clear").executes(ctx ->
-                                                execute(ctx.getSource(), StringArgumentType.getString(ctx, "player"), "clear")))
+                                                execute(ctx.getSource(), EntityArgument.getPlayer(ctx, "player"), "clear")))
                         )
         );
     }
 
-    private static int execute(CommandSourceStack source, String targetName, String residence) {
-        net.minecraft.server.level.ServerPlayer target = null;
-        for (net.minecraft.server.level.ServerPlayer p : source.getServer().getPlayerList().getPlayers()) {
-            if (p.getName().getString().equals(targetName)) {
-                target = p;
-                break;
-            }
-        }
-
-        if (target == null) {
-            source.sendFailure(Component.literal("Player not found or not online: " + targetName)
-                    .withStyle(ChatFormatting.RED));
-            return 0;
-        }
-
+    private static int execute(CommandSourceStack source, net.minecraft.server.level.ServerPlayer target, String residence) {
         ResidenceData.set(target, residence);
         String shown = "clear".equals(residence) ? "bloodline default" : residence;
+        String targetName = target.getName().getString();
 
         try {
             net.minecraft.server.level.ServerPlayer sender = source.getPlayerOrException();

@@ -2,6 +2,7 @@ package com.aotaddon.util;
 
 import com.aotaddon.combat.CombatTagData;
 import com.aotaddon.config.AddonConfig;
+import com.aotaddon.network.CombatTagSyncPayload;
 import com.aotaddon.registry.ModAttachments;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -10,6 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 public class CombatTagHandler {
 
@@ -38,16 +40,18 @@ public class CombatTagHandler {
                     player.displayClientMessage(
                             Component.literal("No longer in combat").withStyle(ChatFormatting.GREEN),
                             true);
-                    data.combatExpiryTick = -1; // mark cleared so we don't repeat the message
+                    PacketDistributor.sendToPlayer(player, new CombatTagSyncPayload(0));
+                    data.combatExpiryTick = -1;
                 }
                 continue;
             }
 
             if (currentTick % 20 == 0) {
-                long secondsLeft = (data.combatExpiryTick - currentTick) / 20;
+                int secondsLeft = (int) ((data.combatExpiryTick - currentTick) / 20);
                 player.displayClientMessage(
                         Component.literal("Combat Tagged " + secondsLeft).withStyle(ChatFormatting.RED),
                         true);
+                PacketDistributor.sendToPlayer(player, new CombatTagSyncPayload(secondsLeft));
             }
         }
     }

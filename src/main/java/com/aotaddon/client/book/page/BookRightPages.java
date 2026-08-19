@@ -6,6 +6,7 @@ import com.aotaddon.client.ClientHonorData;
 import com.aotaddon.client.ConsentClientSetup;
 import com.aotaddon.client.GrabModeClientSetup;
 import com.aotaddon.client.ODMDiagnosticKeybind;
+import com.aotaddon.client.ShiftlockClientState;
 import com.aotaddon.client.book.BookTab;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -86,14 +87,9 @@ public final class BookRightPages {
     private static void renderTalents(GuiGraphics gfx, Font font, int x, int y, int innerW) {
         y = drawTitle(gfx, font, x, y, innerW, Component.translatable("titanreqiuem.book.tab.talents"));
         y += 10;
-        y = drawLabeledBar(gfx, font, x, y, innerW,
-                Component.translatable("titanreqiuem.book.talents.odm"), 0, 20);
-        y += 6;
-        y = drawLabeledBar(gfx, font, x, y, innerW,
-                Component.translatable("titanreqiuem.book.talents.armor"), 0, 20);
-        y += 6;
-        drawLabeledBar(gfx, font, x, y, innerW,
-                Component.translatable("titanreqiuem.book.talents.gear"), 0, 20);
+        Component text = Component.translatable("titanreqiuem.book.coming_soon");
+        int tx = x + (innerW / 2) - (font.width(text) / 2);
+        gfx.drawString(font, text, tx, y, INK_MUTED, false);
     }
 
     private static void renderSettings(GuiGraphics gfx, Font font, int x, int y, int innerW) {
@@ -101,13 +97,13 @@ public final class BookRightPages {
         y += 6;
         y = drawSettingsRow(gfx, font, x, y, innerW,
                 Component.translatable("titanreqiuem.book.settings.shiftlock"),
-                settingValue(ODMDiagnosticKeybind.KEY_SHIFTLOCK));
+                toggleValue(ShiftlockClientState.isActive(), ODMDiagnosticKeybind.KEY_SHIFTLOCK));
         y = drawSettingsRow(gfx, font, x, y, innerW,
                 Component.translatable("titanreqiuem.book.settings.grab_mode"),
-                settingValue(GrabModeClientSetup.TOGGLE_GRAB_MODE));
+                toggleValue(ClientCardStats.isGrabMode(), GrabModeClientSetup.TOGGLE_GRAB_MODE));
         y = drawSettingsRow(gfx, font, x, y, innerW,
                 Component.translatable("titanreqiuem.book.settings.consent"),
-                settingValue(ConsentClientSetup.TOGGLE_CONSENT));
+                toggleValue(ClientCardStats.isConsentOpen(), ConsentClientSetup.TOGGLE_CONSENT));
         drawSettingsRow(gfx, font, x, y, innerW,
                 Component.translatable("titanreqiuem.book.settings.horse_whistle"),
                 settingValue(ODMDiagnosticKeybind.KEY_HORSE_WHISTLE));
@@ -117,10 +113,10 @@ public final class BookRightPages {
         y = drawTitle(gfx, font, x, y, innerW, Component.translatable("titanreqiuem.book.tab.reputation"));
         y += 10;
         y = drawLabeledBar(gfx, font, x, y, innerW,
-                Component.translatable("titanreqiuem.book.rep.paradis"), 0, 100);
+                Component.translatable("titanreqiuem.book.rep.paradis"), ClientCardStats.getRepParadis(), 100);
         y += 8;
         drawLabeledBar(gfx, font, x, y, innerW,
-                Component.translatable("titanreqiuem.book.rep.marley"), 0, 100);
+                Component.translatable("titanreqiuem.book.rep.marley"), ClientCardStats.getRepMarley(), 100);
     }
 
     private static void renderUnassigned(GuiGraphics gfx, Font font, int regionX, int regionY, int regionW, int regionH) {
@@ -134,9 +130,15 @@ public final class BookRightPages {
         Component keyName = mapping.isUnbound()
                 ? Component.translatable("titanreqiuem.book.value.dash")
                 : mapping.getTranslatedKeyMessage();
-        return Component.translatable("titanreqiuem.book.value.off")
-                .append(Component.literal(" / "))
-                .append(keyName);
+        return keyName;
+    }
+
+    private static Component toggleValue(boolean active, KeyMapping mapping) {
+        String state = active ? "ON" : "OFF";
+        Component keyName = mapping.isUnbound()
+                ? Component.translatable("titanreqiuem.book.value.dash")
+                : mapping.getTranslatedKeyMessage();
+        return Component.literal(state + " / ").append(keyName);
     }
 
     private static int drawTitle(GuiGraphics gfx, Font font, int x, int y, int innerW, Component title) {

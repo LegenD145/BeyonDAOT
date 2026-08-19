@@ -3,16 +3,15 @@ package com.aotaddon.gear;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
 public class GearPouchScreen extends AbstractContainerScreen<GearPouchMenu> {
 
-    // We draw a plain dark background — no custom texture needed to start.
-    // You can add a texture PNG later at assets/titanreqiuem/textures/gui/gear_pouch.png
-    private static final int BG_COLOR      = 0xCC1A1A1A;
-    private static final int BORDER_COLOR  = 0xFF555555;
-    private static final int LABEL_COLOR   = 0xFFAAAAAA;
+    private static final int PANEL_LIGHT = 0xFFC6C6C6;
+    private static final int PANEL_MID = 0xFF8B8B8B;
+    private static final int EDGE_LIGHT = 0xFFFFFFFF;
+    private static final int EDGE_DARK = 0xFF373737;
+    private static final int LABEL_COLOR = 0xFF404040;
 
     // GUI size
     private static final int GUI_WIDTH  = 176;
@@ -29,23 +28,50 @@ public class GearPouchScreen extends AbstractContainerScreen<GearPouchMenu> {
         int x = leftPos;
         int y = topPos;
 
-        // Background
-        graphics.fill(x, y, x + imageWidth, y + imageHeight, BG_COLOR);
-
-        // Border
-        graphics.fill(x,                  y,                   x + imageWidth, y + 1,            BORDER_COLOR);
-        graphics.fill(x,                  y + imageHeight - 1, x + imageWidth, y + imageHeight,  BORDER_COLOR);
-        graphics.fill(x,                  y,                   x + 1,          y + imageHeight,  BORDER_COLOR);
-        graphics.fill(x + imageWidth - 1, y,                   x + imageWidth, y + imageHeight,  BORDER_COLOR);
+        drawPanelFrame(graphics, x, y, imageWidth, imageHeight);
 
         // Section labels
-        graphics.drawString(font, "Blades",  x + 8,  y + 8,  LABEL_COLOR, false);
+        graphics.drawString(font, this.title, x + 8, y + 6, LABEL_COLOR, false);
+        graphics.drawString(font, "Blades",  x + 8,  y + 10, LABEL_COLOR, false);
         graphics.drawString(font, "Gas",     x + 8,  y + 64, LABEL_COLOR, false);
         graphics.drawString(font, "Spears",  x + 30, y + 64, LABEL_COLOR, false);
         graphics.drawString(font, "Hotbar",  x + 8,  y + 88, LABEL_COLOR, false);
 
         // Divider line between pouch and hotbar
-        graphics.fill(x + 4, y + 84, x + imageWidth - 4, y + 85, BORDER_COLOR);
+        graphics.fill(x + 4, y + 84, x + imageWidth - 4, y + 85, EDGE_DARK);
+        graphics.fill(x + 4, y + 85, x + imageWidth - 4, y + 86, EDGE_LIGHT);
+
+        // Blade slots (2x4)
+        for (int row = 0; row < 2; row++) {
+            for (int col = 0; col < 4; col++) {
+                drawSlotBg(graphics, x + 8 + col * 18, y + 18 + row * 18);
+            }
+        }
+        // Gas + spears
+        drawSlotBg(graphics, x + 8, y + 58);
+        drawSlotBg(graphics, x + 30, y + 58);
+        drawSlotBg(graphics, x + 52, y + 58);
+        // Hotbar
+        for (int col = 0; col < 9; col++) {
+            drawSlotBg(graphics, x + 8 + col * 18, y + 90);
+        }
+    }
+
+    private void drawPanelFrame(GuiGraphics graphics, int x, int y, int w, int h) {
+        graphics.fill(x, y, x + w, y + h, PANEL_LIGHT);
+        graphics.fill(x, y, x + w, y + 1, EDGE_LIGHT);
+        graphics.fill(x, y, x + 1, y + h, EDGE_LIGHT);
+        graphics.fill(x + w - 1, y, x + w, y + h, EDGE_DARK);
+        graphics.fill(x, y + h - 1, x + w, y + h, EDGE_DARK);
+        graphics.fill(x + 1, y + 1, x + w - 1, y + h - 1, PANEL_LIGHT);
+    }
+
+    private void drawSlotBg(GuiGraphics graphics, int sx, int sy) {
+        graphics.fill(sx, sy, sx + 18, sy + 1, EDGE_DARK);
+        graphics.fill(sx, sy + 1, sx + 1, sy + 17, EDGE_DARK);
+        graphics.fill(sx, sy + 17, sx + 18, sy + 18, EDGE_LIGHT);
+        graphics.fill(sx + 17, sy, sx + 18, sy + 17, EDGE_LIGHT);
+        graphics.fill(sx + 1, sy + 1, sx + 17, sy + 17, PANEL_MID);
     }
 
     @Override

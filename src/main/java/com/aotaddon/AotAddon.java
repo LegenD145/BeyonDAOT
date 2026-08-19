@@ -17,6 +17,7 @@ import com.aotaddon.identity.IdentityNametagHandler;
 import com.aotaddon.identity.IdentityRevealHandler;
 import com.aotaddon.gear.ModMenuTypes;
 import com.aotaddon.horse.HorseWhistleHandler;
+import com.aotaddon.network.CombatTagSyncPayload;
 import com.aotaddon.network.OpenGearPouchPayload;
 import com.aotaddon.network.BastionTogglePayload;
 import com.aotaddon.network.ShiftlockTogglePayload;
@@ -25,10 +26,10 @@ import com.aotaddon.network.DodgeStartPayload;
 import com.aotaddon.network.HorseWhistlePayload;
 import com.aotaddon.network.SitCampfirePayload;
 import com.aotaddon.network.HeadlessTitanSyncPayload;
-import com.aotaddon.network.OdmGasXpPayload;
 import com.aotaddon.network.SkillEffectPayload;
 import com.aotaddon.network.TrailEffectPayload;
 import com.aotaddon.network.RewardPopupPayload;
+import com.aotaddon.network.PdLifeSyncPayload;
 import com.aotaddon.network.HonorSyncPayload;
 import com.aotaddon.network.CurrencySyncPayload;
 import com.aotaddon.network.PlayerCardSyncPayload;
@@ -39,7 +40,6 @@ import com.aotaddon.rewards.TitanKillRewardHandler;
 import com.aotaddon.client.RewardPopupOverlay;
 import com.aotaddon.client.CurrencyHudOverlay;
 import com.aotaddon.client.PdSkullOverlay;
-import com.aotaddon.client.CustomHeartOverlay;
 import com.aotaddon.registry.ModAttachments;
 import com.aotaddon.registry.ModBlocks;
 import com.aotaddon.registry.ModBlockEntities;
@@ -56,6 +56,7 @@ import com.aotaddon.tabs.XaerosMapTab;
 import com.aotaddon.util.AttributeCapHandler;
 import com.aotaddon.util.CombatTagHandler;
 import com.aotaddon.util.DodgeIFrameHandler;
+import com.aotaddon.util.PlayerCloneDataHandler;
 import com.aotaddon.util.RaptorDashHandler;
 import com.aotaddon.util.ResilienceStaminaHandler;
 import com.aotaddon.util.ZeroHourExplosionHandler;
@@ -131,6 +132,8 @@ public class AotAddon {
         NeoForge.EVENT_BUS.addListener(FamilyEventHandler::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(FamilyEventHandler::onPlayerFirstJoin);
         NeoForge.EVENT_BUS.addListener(FamilyEventHandler::onChatMessage);
+        NeoForge.EVENT_BUS.addListener(FamilyEventHandler::onServerTick);
+        NeoForge.EVENT_BUS.addListener(PlayerCloneDataHandler::onClone);
 
         // Anti-metagaming identity reveal ("my name is X" -> 50-block radius)
         NeoForge.EVENT_BUS.addListener(IdentityRevealHandler::onChatMessage);
@@ -150,6 +153,7 @@ public class AotAddon {
         // Titan kill rewards (Honor/Medals-Banknotes/Rep display, popup text)
         NeoForge.EVENT_BUS.addListener(TitanKillRewardHandler::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(TitanKillRewardHandler::onPlayerLogin);
+        NeoForge.EVENT_BUS.addListener(com.aotaddon.reputation.ReputationHandler::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(CurrencySyncTicker::onServerTick);
 
         // Horse whistle bonding
@@ -179,9 +183,9 @@ public class AotAddon {
             NeoForge.EVENT_BUS.register(new RewardPopupOverlay());
             NeoForge.EVENT_BUS.register(new CurrencyHudOverlay());
             NeoForge.EVENT_BUS.register(new PdSkullOverlay());
-            NeoForge.EVENT_BUS.register(new CustomHeartOverlay());
             NeoForge.EVENT_BUS.register(new com.aotaddon.client.SkillCooldownOverlay());
             NeoForge.EVENT_BUS.register(new com.aotaddon.client.CampfireSitOverlay());
+            NeoForge.EVENT_BUS.register(new com.aotaddon.client.CombatTagOverlay());
 
             // Anti-metagaming: cancel nametag render for unrevealed players
             NeoForge.EVENT_BUS.addListener(IdentityNametagHandler::onRenderNameTag);
@@ -254,12 +258,6 @@ public class AotAddon {
         );
 
         registrar.playToServer(
-                OdmGasXpPayload.TYPE,
-                OdmGasXpPayload.STREAM_CODEC,
-                OdmGasXpPayload::handle
-        );
-
-        registrar.playToServer(
                 OpenGearPouchPayload.TYPE,
                 OpenGearPouchPayload.STREAM_CODEC,
                 OpenGearPouchPayload::handle
@@ -296,6 +294,12 @@ public class AotAddon {
         );
 
         registrar.playToClient(
+                PdLifeSyncPayload.TYPE,
+                PdLifeSyncPayload.STREAM_CODEC,
+                PdLifeSyncPayload::handle
+        );
+
+        registrar.playToClient(
                 HonorSyncPayload.TYPE,
                 HonorSyncPayload.STREAM_CODEC,
                 HonorSyncPayload::handle
@@ -311,6 +315,12 @@ public class AotAddon {
                 PlayerCardSyncPayload.TYPE,
                 PlayerCardSyncPayload.STREAM_CODEC,
                 PlayerCardSyncPayload::handle
+        );
+
+        registrar.playToClient(
+                CombatTagSyncPayload.TYPE,
+                CombatTagSyncPayload.STREAM_CODEC,
+                CombatTagSyncPayload::handle
         );
 
         registrar.playToClient(

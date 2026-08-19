@@ -21,8 +21,10 @@ public class GasCanisterMenu extends AbstractContainerMenu {
 
     private static final int GUI_LEFT = 8;
     private static final int SLOT_SIZE = 18;
-    private static final int CANISTER_SLOT_X = 80;
-    private static final int CANISTER_SLOT_Y = 35;
+    private static final int FILL_SLOT_X = 26;
+    private static final int FILL_SLOT_Y = 24;
+    private static final int TAKE_SLOT_X = 26;
+    private static final int TAKE_SLOT_Y = 56;
     private static final int INV_TOP = 84;
 
     public GasCanisterMenu(int windowId, Inventory playerInventory, GasCanisterBlockEntity blockEntity, ContainerData data) {
@@ -30,7 +32,16 @@ public class GasCanisterMenu extends AbstractContainerMenu {
         this.blockEntity = blockEntity;
         this.data = data;
 
-        addSlot(new Slot(blockEntity, 0, CANISTER_SLOT_X, CANISTER_SLOT_Y) {
+        // Slot 0: Fill (drain canister into tank)
+        addSlot(new Slot(blockEntity, 0, FILL_SLOT_X, FILL_SLOT_Y) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return GasCanisterItemReflection.isGasCanisterItem(stack.getItem());
+            }
+        });
+
+        // Slot 1: Take (fill canister from tank)
+        addSlot(new Slot(blockEntity, 1, TAKE_SLOT_X, TAKE_SLOT_Y) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return GasCanisterItemReflection.isGasCanisterItem(stack.getItem());
@@ -66,12 +77,14 @@ public class GasCanisterMenu extends AbstractContainerMenu {
         if (slot != null && slot.hasItem()) {
             ItemStack stack = slot.getItem();
             result = stack.copy();
-            if (index == 0) {
-                if (!moveItemStackTo(stack, 1, 37, true)) {
+            if (index < 2) {
+                // Move from container slots to player inventory
+                if (!moveItemStackTo(stack, 2, 38, true)) {
                     return ItemStack.EMPTY;
                 }
             } else if (GasCanisterItemReflection.isGasCanisterItem(stack.getItem())) {
-                if (!moveItemStackTo(stack, 0, 1, false)) {
+                // Try fill slot first, then take slot
+                if (!moveItemStackTo(stack, 0, 2, false)) {
                     return ItemStack.EMPTY;
                 }
             } else {

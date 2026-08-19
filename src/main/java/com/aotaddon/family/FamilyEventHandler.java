@@ -26,26 +26,33 @@ public class FamilyEventHandler {
             "dannys-aot:titan", "dannys-aot:small_titan", "dannys-aot:small_titan_2",
             "dannys-aot:sad_titan", "dannys-aot:titan_tropical", "dannys-aot:yellow_titan",
             "dannys-aot:connie_father", "dannys-aot:abnormal_titan", "dannys-aot:crawler_titan",
-            "dannys-aot:crawling_abnormal_titan", "dannys-aot:fritz_titan", "dannys-aot:titan_beard"
+            "dannys-aot:crawling_abnormal_titan", "dannys-aot:fritz_titan", "dannys-aot:titan_beard",
+            "dannys-aot:ogre_titan"
     );
 
     private static final Set<String> NAPE_IDS = Set.of(
             "dannys-aot:titan_nape", "dannys-aot:small_titan_nape", "dannys-aot:small_titan_2_nape",
             "dannys-aot:sad_titan_nape", "dannys-aot:titan_tropical_nape", "dannys-aot:yellow_titan_nape",
             "dannys-aot:connie_father_nape", "dannys-aot:abnormal_titan_nape", "dannys-aot:crawler_titan_nape",
-            "dannys-aot:crawling_abnormal_titan_nape", "dannys-aot:fritz_titan_nape", "dannys-aot:titan_beard_nape"
+            "dannys-aot:crawling_abnormal_titan_nape", "dannys-aot:fritz_titan_nape", "dannys-aot:titan_beard_nape",
+            "dannys-aot:ogre_titan_nape"
     );
 
     private static final Set<String> EYE_IDS = Set.of(
             "dannys-aot:titan_eye", "dannys-aot:small_titan_eye", "dannys-aot:small_titan_2_eye",
             "dannys-aot:sad_titan_eye", "dannys-aot:titan_tropical_eye", "dannys-aot:yellow_titan_eye",
             "dannys-aot:connie_father_eye", "dannys-aot:crawler_titan_eye",
-            "dannys-aot:fritz_titan_eye", "dannys-aot:titan_beard_eye"
+            "dannys-aot:fritz_titan_eye", "dannys-aot:titan_beard_eye",
+            "dannys-aot:abnormal_titan_eye", "dannys-aot:crawling_abnormal_titan_eye", "dannys-aot:ogre_titan_eye"
     );
 
     private static final int STUN_TICKS = 60;
     public static final double HELOS_WIPE_RADIUS = 20.0;
     public static final double ROYAL_STUN_RADIUS = 50.0;
+
+    private record StunnedTitan(net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> dimension, int ticksLeft) {}
+
+    private static final java.util.Map<java.util.UUID, StunnedTitan> STUNNED_TITANS = new java.util.HashMap<>();
 
     // =========================================================================
     // EVENT HANDLERS — registered via addListener() in AotAddon, not @SubscribeEvent
@@ -142,6 +149,13 @@ public class FamilyEventHandler {
             }
         }
 
+        // Royal stun trigger: nape/eye titan kill by Fritz/Reiss.
+        if (isNapeOrEye(dying) && source.getEntity() instanceof ServerPlayer attacker) {
+            if (FamilyData.hasRoyalBlood(attacker)) {
+                stunTitansNearby(attacker);
+            }
+        }
+
         // Fritz/Yeager revive
         if (dying instanceof ServerPlayer player && FamilyData.hasRevive(player)) {
             if (!FamilyData.isReviveOnCooldown(player)) {
@@ -171,14 +185,50 @@ public class FamilyEventHandler {
                 e -> isPureTitan(e) && !e.getUUID().equals(player.getUUID())
         );
         for (net.minecraft.world.entity.Mob titan : nearby) {
-            try { titan.setNoAi(true); scheduleAiRestore(player, titan, STUN_TICKS); }
+            try { titan.setNoAi(true); scheduleAiRestore(titan, STUN_TICKS); }
             catch (Exception e) { AotAddon.LOGGER.error("[TitanRequiem] stunTitansNearby failed: {}", e.getMessage()); }
         }
     }
 
-    private static void scheduleAiRestore(ServerPlayer player, net.minecraft.world.entity.Mob titan, int ticks) {
-        if (ticks <= 0) { player.getServer().execute(() -> titan.setNoAi(false)); return; }
-        player.getServer().execute(() -> scheduleAiRestore(player, titan, ticks - 1));
+    private static void scheduleAiRestore(net.minecraft.world.entity.Mob titan, int ticks) {
+        if (ticks <= 0) {
+            titan.setNoAi(false);
+            STUNNED_TITANS.remove(titan.getUUID());
+            return;
+        }
+        STUNNED_TITANS.put(titan.getUUID(), new StunnedTitan(titan.level().dimension(), ticks));
+    }
+
+    public static void onServerTick(net.neoforged.neoforge.event.tick.ServerTickEvent.Post event) {
+        if (STUNNED_TITANS.isEmpty()) {
+            return;
+        }
+        var server = event.getServer();
+        var iterator = STUNNED_TITANS.entrySet().iterator();
+        while (iterator.hasNext()) {
+            var entry = iterator.next();
+            StunnedTitan stunned = entry.getValue();
+            int ticksLeft = stunned.ticksLeft() - 1;
+
+            net.minecraft.server.level.ServerLevel level = server.getLevel(stunned.dimension());
+            if (level == null) {
+                iterator.remove();
+                continue;
+            }
+
+            net.minecraft.world.entity.Entity entity = level.getEntity(entry.getKey());
+            if (!(entity instanceof net.minecraft.world.entity.Mob mob) || !mob.isAlive()) {
+                iterator.remove();
+                continue;
+            }
+
+            if (ticksLeft <= 0) {
+                mob.setNoAi(false);
+                iterator.remove();
+            } else {
+                entry.setValue(new StunnedTitan(stunned.dimension(), ticksLeft));
+            }
+        }
     }
 
     // =========================================================================

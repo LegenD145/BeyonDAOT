@@ -4,6 +4,7 @@ import com.aotaddon.currency.BanknoteData;
 import com.aotaddon.currency.CurrencyFaction;
 import com.aotaddon.currency.MedalData;
 import com.aotaddon.network.CurrencySyncPayload;
+import com.aotaddon.network.PdLifeSyncPayload;
 import com.aotaddon.network.PlayerCardSyncPayload;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -34,6 +35,7 @@ public final class CurrencySyncTicker {
             };
             PacketDistributor.sendToPlayer(player, new CurrencySyncPayload(balance));
             PlayerCardSyncPayload.send(player);
+            PdLifeSyncPayload.send(player);
         }
     }
 }

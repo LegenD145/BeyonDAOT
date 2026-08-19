@@ -24,11 +24,11 @@ import net.neoforged.neoforge.client.settings.KeyConflictContext;
 public final class GasCheckKeyHandler {
 
     public static final KeyMapping CHECK_GAS_KEY = new KeyMapping(
-            "key.aotaddon.check_gas",
+            "key.titanreqiuem.check_gas",
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            InputConstants.KEY_G,
-            "key.categories.aotaddon"
+            InputConstants.KEY_J,
+            "key.categories.titanreqiuem"
     );
 
     private GasCheckKeyHandler() {}

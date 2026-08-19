@@ -5,12 +5,7 @@ import net.minecraft.world.entity.player.Player;
 
 /**
  * Central helper — gets or saves a player's GearPouchInventory.
- * The pouch is stored in player.getPersistentData() so it is tied to the
- * player entity and wiped on death automatically (Minecraft does NOT copy
- * persistentData to the respawn player by default in NeoForge).
- *
- * If you want it to survive non-permadeath respawns, listen to
- * PlayerEvent.Clone and copy the tag manually. For now, it wipes on death.
+ * Stored in player persistentData; survives respawn via PlayerCloneDataHandler.
  */
 public class GearPouchHelper {
 
@@ -22,15 +17,6 @@ public class GearPouchHelper {
         GearPouchInventory pouch = new GearPouchInventory();
         pouch.load(player, player.level().registryAccess());
         return pouch;
-    }
-
-    /**
-     * Save a pouch back into the player's persistentData.
-     * Called on menu close and after blade consumption.
-     */
-    public static void savePouch(Player player) {
-        // The menu holds a reference to the pouch — we need the menu's pouch.
-        // This is a convenience overload for when you already have the pouch.
     }
 
     public static void savePouch(Player player, GearPouchInventory pouch) {

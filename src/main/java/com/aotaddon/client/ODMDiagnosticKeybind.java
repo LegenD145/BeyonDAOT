@@ -1,5 +1,4 @@
 package com.aotaddon.client;
-// ZOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOS
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 
@@ -12,14 +11,14 @@ public class ODMDiagnosticKeybind {
     public static final KeyMapping KEY_DIAGNOSE = new KeyMapping(
             "key.titanreqiuem.odm_diagnose",
             InputConstants.Type.KEYSYM,
-            InputConstants.KEY_K,
+            InputConstants.UNKNOWN.getValue(),
             "key.categories.titanreqiuem"
     );
 
     public static final KeyMapping KEY_BASTION = new KeyMapping(
             "key.titanreqiuem.bastion_toggle",
             InputConstants.Type.KEYSYM,
-            InputConstants.KEY_G,
+            InputConstants.KEY_B,
             "key.categories.titanreqiuem"
     );
 

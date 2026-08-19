@@ -15,9 +15,6 @@ public class AddonConfig {
     // Attribute caps
     public static final ModConfigSpec.DoubleValue MAX_HEALTH_CAP;
 
-    // ODM Skill Tree XP
-    public static final ModConfigSpec.DoubleValue ODM_XP_PER_GAS_UNIT;
-
     // ODM Skills — Impulse (double-W) and Dodge (double-S)
     public static final ModConfigSpec.BooleanValue ODM_SKILLS_ENABLED;
     public static final ModConfigSpec.IntValue ODM_SKILL_WINDOW_MS;
@@ -153,19 +150,6 @@ public class AddonConfig {
                         "Applied once at mod startup. Needed for titan health values above 1024."
                 )
                 .defineInRange("max_health_cap", 100000.0, 1024.0, 1.0E9);
-
-        builder.pop();
-
-        // ------------------------------------------------------------------
-        builder.comment("ODM skill tree XP gain — fires per gas unit consumed").push("odm_xp");
-
-        ODM_XP_PER_GAS_UNIT = builder
-                .comment(
-                        "XP granted to the ODM skill tree per unit of gas consumed.",
-                        "Matches KubeJS's st_addXP('odm', amount) leveling curve exactly.",
-                        "Default 0.15 — roughly 1 XP per ~7 gas spent."
-                )
-                .defineInRange("xp_per_gas_unit", 0.15, 0.0, 100.0);
 
         builder.pop();
 

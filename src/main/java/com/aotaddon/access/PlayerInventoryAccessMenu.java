@@ -19,7 +19,6 @@ public class PlayerInventoryAccessMenu extends AbstractContainerMenu {
     private final Player targetPlayer;
 
     public PlayerInventoryAccessMenu(int windowId, Inventory viewerInventory, int targetEntityId) {
-        // TODO: replace `null` with your registered MenuType supplier, e.g. ModMenus.PLAYER_INVENTORY_ACCESS.get()
         super(ModMenuTypes.PLAYER_INVENTORY_ACCESS.get(), windowId);
 
         this.targetEntityId = targetEntityId;

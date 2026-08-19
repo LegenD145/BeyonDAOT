@@ -92,8 +92,7 @@ public class BookOpenScreen extends BookScreenBase {
         Player player = this.minecraft.player;
         if (player == null) return;
 
-        // TODO: Simple Nicknames reflection once that helper exists.
-        Component nickname = player.getDisplayName();
+        Component nickname = com.aotaddon.util.NicknameHelper.getNickname(player);
         int titleX = regionX + (regionW / 2) - (this.font.width(nickname) / 2);
         int titleY = regionY + Math.max(28, regionH / 8);
         gfx.drawString(this.font, nickname, titleX, titleY, INK, false);

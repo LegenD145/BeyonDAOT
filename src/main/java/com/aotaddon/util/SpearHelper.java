@@ -124,8 +124,6 @@ public class SpearHelper {
      */
     public static int getCapForPlayer(ServerPlayer player) {
         try {
-            int skillBonus = SkillTreeGearHelper.getSpearCapacityBonus(player);
-
             // BloodlineData.get(server) then .getBloodline(uuid)
             Class<?> bloodlineDataClass = Class.forName("daot.BloodlineData");
             Class<?> bloodlineTypeClass = Class.forName("daot.BloodlineType");
@@ -138,24 +136,23 @@ public class SpearHelper {
             Object bloodlineType = getBloodlineMethod.invoke(bloodlineData, player.getUUID());
 
             if (bloodlineType == null) {
-                return AddonConfig.DEFAULT_CAP.get() + skillBonus;
+                return AddonConfig.DEFAULT_CAP.get();
             }
 
-            // Compare by enum name as string — safe against recompiles
             String name = ((Enum<?>) bloodlineType).name().toUpperCase();
 
             return switch (name) {
-                case "ACKERMAN" -> AddonConfig.ACKERMAN_CAP.get() + skillBonus;
-                case "ELDIAN"   -> AddonConfig.ELDIAN_CAP.get() + skillBonus;
+                case "ACKERMAN" -> AddonConfig.ACKERMAN_CAP.get();
+                case "ELDIAN"   -> AddonConfig.ELDIAN_CAP.get();
                 case "MARLEY", "MARLEYAN" -> AddonConfig.MARLEY_BLOCKED.get()
                         ? 0
-                        : AddonConfig.DEFAULT_CAP.get() + skillBonus;
-                default -> AddonConfig.DEFAULT_CAP.get() + skillBonus;
+                        : AddonConfig.DEFAULT_CAP.get();
+                default -> AddonConfig.DEFAULT_CAP.get();
             };
 
         } catch (Exception e) {
             AotAddon.LOGGER.error("[AotAddon] getCapForPlayer reflection failed: {}", e.getMessage());
-            return AddonConfig.DEFAULT_CAP.get() + SkillTreeGearHelper.getSpearCapacityBonus(player);
+            return AddonConfig.DEFAULT_CAP.get();
         }
     }
 

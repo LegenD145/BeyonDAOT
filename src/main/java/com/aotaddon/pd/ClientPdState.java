@@ -2,9 +2,7 @@ package com.aotaddon.pd;
 
 /**
  * Client-side cached copy of the LOCAL player's currently resolved PD state.
- * Placeholder cache only — nothing writes to this yet. Once the server-side
- * PdState/command system exists, sync it here the same way HonorSyncPayload
- * feeds ClientHonorData (sync on change + sync on login).
+ * Updated by PdLifeSyncPayload on login and periodic sync.
  */
 public final class ClientPdState {
 

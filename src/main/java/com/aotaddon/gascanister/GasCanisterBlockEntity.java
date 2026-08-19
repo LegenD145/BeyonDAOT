@@ -44,7 +44,7 @@ public class GasCanisterBlockEntity extends BlockEntity implements Container, Me
     private static final String STORED_GAS_KEY = "StoredGas";
 
     private int storedGas = 0;
-    private final NonNullList<ItemStack> items = NonNullList.withSize(1, ItemStack.EMPTY);
+    private final NonNullList<ItemStack> items = NonNullList.withSize(2, ItemStack.EMPTY);
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache((GeoAnimatable) this);
 
     private final ContainerData data = new SimpleContainerData(1) {
@@ -104,19 +104,30 @@ public class GasCanisterBlockEntity extends BlockEntity implements Container, Me
     private static final int CANISTER_DRAIN_PER_TICK = 25;
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, GasCanisterBlockEntity be) {
-        ItemStack slotStack = be.items.get(0);
-        if (slotStack.isEmpty()) return;
-        if (!GasCanisterItemReflection.isGasCanisterItem(slotStack.getItem())) return;
+        // Slot 0 (Fill): drain canister into tank
+        ItemStack fillStack = be.items.get(0);
+        if (!fillStack.isEmpty() && GasCanisterItemReflection.isGasCanisterItem(fillStack.getItem())) {
+            int canisterGas = GasCanisterItemReflection.getGas(fillStack);
+            int capacityRemaining = MAX_STORED_GAS - be.storedGas;
+            if (canisterGas > 0 && capacityRemaining > 0) {
+                int transfer = Math.min(CANISTER_DRAIN_PER_TICK, Math.min(canisterGas, capacityRemaining));
+                GasCanisterItemReflection.setGas(fillStack, canisterGas - transfer);
+                be.addGas(transfer);
+            }
+        }
 
-        int canisterGas = GasCanisterItemReflection.getGas(slotStack);
-        if (canisterGas <= 0) return;
-
-        int capacityRemaining = MAX_STORED_GAS - be.storedGas;
-        if (capacityRemaining <= 0) return;
-
-        int transfer = Math.min(CANISTER_DRAIN_PER_TICK, Math.min(canisterGas, capacityRemaining));
-        GasCanisterItemReflection.setGas(slotStack, canisterGas - transfer);
-        be.addGas(transfer);
+        // Slot 1 (Take): fill canister from tank
+        ItemStack takeStack = be.items.get(1);
+        if (!takeStack.isEmpty() && GasCanisterItemReflection.isGasCanisterItem(takeStack.getItem())) {
+            int canisterGas = GasCanisterItemReflection.getGas(takeStack);
+            int canisterMax = GasCanisterItemReflection.CANISTER_MAX_GAS;
+            int canisterSpace = canisterMax - canisterGas;
+            if (canisterSpace > 0 && be.storedGas > 0) {
+                int transfer = Math.min(CANISTER_DRAIN_PER_TICK, Math.min(be.storedGas, canisterSpace));
+                GasCanisterItemReflection.setGas(takeStack, canisterGas + transfer);
+                be.removeGas(transfer);
+            }
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -125,34 +136,34 @@ public class GasCanisterBlockEntity extends BlockEntity implements Container, Me
 
     @Override
     public int getContainerSize() {
-        return 1;
+        return 2;
     }
 
     @Override
     public boolean isEmpty() {
-        return items.get(0).isEmpty();
+        return items.get(0).isEmpty() && items.get(1).isEmpty();
     }
 
     @Override
     public ItemStack getItem(int slot) {
-        return items.get(0);
+        return items.get(slot);
     }
 
     @Override
     public ItemStack removeItem(int slot, int count) {
-        ItemStack result = ContainerHelper.removeItem(items, 0, count);
+        ItemStack result = ContainerHelper.removeItem(items, slot, count);
         if (!result.isEmpty()) setChanged();
         return result;
     }
 
     @Override
     public ItemStack removeItemNoUpdate(int slot) {
-        return ContainerHelper.takeItem(items, 0);
+        return ContainerHelper.takeItem(items, slot);
     }
 
     @Override
     public void setItem(int slot, ItemStack stack) {
-        items.set(0, stack);
+        items.set(slot, stack);
         if (stack.getCount() > getMaxStackSize()) {
             stack.setCount(getMaxStackSize());
         }
@@ -167,7 +178,9 @@ public class GasCanisterBlockEntity extends BlockEntity implements Container, Me
 
     @Override
     public void clearContent() {
-        items.set(0, ItemStack.EMPTY);
+        for (int i = 0; i < items.size(); i++) {
+            items.set(i, ItemStack.EMPTY);
+        }
     }
 
     // -------------------------------------------------------------------------

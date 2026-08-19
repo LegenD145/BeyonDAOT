@@ -3,7 +3,7 @@ package com.aotaddon.client;
 import com.aotaddon.campfire.CampfireHelper;
 import com.aotaddon.client.book.BookKeybind;
 import com.aotaddon.network.SitCampfirePayload;
-import com.aotaddon.util.CombatTagHandler;
+import com.aotaddon.client.ClientCombatTagState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
@@ -102,7 +102,7 @@ public class CampfireSitOverlay {
         if (player.isPassenger() && !isOnCampfireSeat(player)) {
             return false;
         }
-        if (CombatTagHandler.isInCombat(player)) {
+        if (ClientCombatTagState.isInCombat()) {
             return false;
         }
         long tick = mc.level.getGameTime();

@@ -91,9 +91,14 @@ public class HorseWhistleHandler {
             return;
         }
 
-        // Cooldown — fails silently for now (not surfaced as a message yet).
         long currentTick = player.level().getGameTime();
         if (currentTick < data.cooldownExpiryTick) {
+            long secondsLeft = (data.cooldownExpiryTick - currentTick) / 20;
+            long minutes = secondsLeft / 60;
+            long secs = secondsLeft % 60;
+            player.displayClientMessage(
+                    Component.literal("Whistle on cooldown: " + minutes + "m " + secs + "s").withStyle(ChatFormatting.RED),
+                    true);
             return;
         }
 

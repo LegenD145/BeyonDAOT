@@ -19,5 +19,7 @@ public class ModAttachments {
 
     public static final Supplier<AttachmentType<HorseBondData>> HORSE_BOND =
             ATTACHMENT_TYPES.register("horse_bond",
-                    () -> AttachmentType.builder(HorseBondData::new).build());
+                    () -> AttachmentType.builder(HorseBondData::new)
+                            .serialize(HorseBondData.CODEC)
+                            .build());
 }

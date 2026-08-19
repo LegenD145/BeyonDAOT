@@ -32,9 +32,9 @@ public record TitanReward(float honor, float combatPoints, int medals, int parad
             Map.entry(id("connie_father"),            new TitanReward(0.35f, 0.50f, 10, 3, -3)),
             Map.entry(id("abnormal_titan"),           new TitanReward(0.50f, 1.25f, 20, 7, 0)),
             Map.entry(id("crawler_titan"),            new TitanReward(0.50f, 1.25f, 20, 7, 0)),
-            Map.entry(id("crawling_abnormal_titan"),  new TitanReward(0.50f, 1.25f, 20, 7, 0))
-            // TODO: add Ogre's standard row here once confirmed whether it has one
-            // beyond the first-kill bonus handled in TitanKillRewardHandler.
+            Map.entry(id("crawling_abnormal_titan"),  new TitanReward(0.50f, 1.25f, 20, 7, 0)),
+            // Standard per-kill row; first-kill/repeat honor modifier is still applied in handler.
+            Map.entry(id("ogre_titan"),               new TitanReward(0.50f, 1.25f, 20, 7, 0))
     );
 
     public static TitanReward forEntity(ResourceLocation entityTypeId) {

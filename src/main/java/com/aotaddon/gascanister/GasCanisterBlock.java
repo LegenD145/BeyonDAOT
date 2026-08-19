@@ -12,6 +12,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -32,6 +35,8 @@ import com.aotaddon.registry.ModBlockEntities;
  */
 public class GasCanisterBlock extends BaseEntityBlock {
 
+    private static final VoxelShape SHAPE = Block.box(2, 0, 2, 14, 56, 14); // 3.5 blocks tall
+
     public static final MapCodec<GasCanisterBlock> CODEC = simpleCodec(GasCanisterBlock::new);
 
     public GasCanisterBlock(Properties properties) {
@@ -44,13 +49,18 @@ public class GasCanisterBlock extends BaseEntityBlock {
     }
 
     @Override
+    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return SHAPE;
+    }
+
+    @Override
     protected RenderShape getRenderShape(BlockState state) {
-        return RenderShape.ENTITYBLOCK_ANIMATED;
+        return RenderShape.MODEL;
     }
 
     @Override
     protected boolean skipRendering(BlockState state, BlockState adjacentState, Direction direction) {
-        return true;
+        return adjacentState.is(this);
     }
 
     @Override

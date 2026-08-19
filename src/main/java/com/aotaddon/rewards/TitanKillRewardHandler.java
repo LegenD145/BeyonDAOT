@@ -3,6 +3,7 @@ package com.aotaddon.rewards;
 import com.aotaddon.currency.BanknoteData;
 import com.aotaddon.currency.CurrencyFaction;
 import com.aotaddon.currency.MedalData;
+import com.aotaddon.network.PdLifeSyncPayload;
 import com.aotaddon.network.PlayerCardSyncPayload;
 import com.aotaddon.network.RewardPopupPayload;
 import net.minecraft.resources.ResourceLocation;
@@ -24,14 +25,8 @@ import java.util.List;
  *   - Honor Points: awarded to any killer, via HonorData.
  *   - Medals/Banknotes: routed by DAOT bloodline — Eldian killers get medals,
  *     Marley killers get banknotes, other bloodlines get neither.
- *   - Reputation: NOT wired to a real system yet — reputation.js on the KubeJS
- *     side is still the source of truth for rep. This only shows the number in
- *     the popup text; it does NOT write reputation anywhere. Wire this up once
- *     reputation is ported to Java, using whatever persistentData key
- *     reputation.js already uses (don't invent a new key here).
- *   - Military branch (Scout/Garrison/MP) gating: NOT implemented — that system
- *     doesn't exist in Java yet either. Everyone eligible by bloodline currently
- *     gets the full medal/banknote amount from the table regardless of branch.
+ *   - Reputation: writes directly into Java-side ReputationData and appears in
+ *     book/overlay sync via PlayerCardSyncPayload.
  */
 public final class TitanKillRewardHandler {
 
@@ -50,8 +45,7 @@ public final class TitanKillRewardHandler {
         int paradisRep = reward != null ? reward.paradisRep() : 0;
         int marleyRep = reward != null ? reward.marleyRep() : 0;
 
-        // Ogre / Abnormal first-kill Honor curve (in addition to any standard table honor, though
-        // Ogre currently has no standard table row — see TitanReward's TODO).
+        // Ogre / Abnormal first-kill Honor curve in addition to standard table honor.
         if (entityId.equals(TitanReward.OGRE)) {
             honorGain += HonorData.claimFirstKillBonus(killer, entityId) ? 5.0 : 1.0;
         } else if (entityId.equals(TitanReward.ABNORMAL_TITAN) || entityId.equals(TitanReward.CRAWLING_ABNORMAL_TITAN)) {
@@ -76,7 +70,9 @@ public final class TitanKillRewardHandler {
         }
         lines.add(currencyLabel != null ? "+1 Kill | " + currencyLabel : "+1 Kill");
 
-        // Line 2: reputation (display only for now — see class javadoc)
+        // Line 2: reputation
+        if (paradisRep != 0) com.aotaddon.reputation.ReputationData.addParadis(killer, paradisRep);
+        if (marleyRep != 0) com.aotaddon.reputation.ReputationData.addMarley(killer, marleyRep);
         if (paradisRep != 0 || marleyRep != 0) {
             StringBuilder rep = new StringBuilder("+ Reputation | ");
             if (paradisRep != 0) rep.append(paradisRep > 0 ? "+" : "").append(paradisRep);
@@ -111,5 +107,6 @@ public final class TitanKillRewardHandler {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         HonorData.syncOnLogin(player);
         PlayerCardSyncPayload.send(player);
+        PdLifeSyncPayload.send(player);
     }
 }

@@ -102,6 +102,6 @@ public class GearPouchMenu extends AbstractContainerMenu {
     public void removed(Player player) {
         super.removed(player);
         // Save on close
-        GearPouchHelper.savePouch(player);
+        GearPouchHelper.savePouch(player, pouch);
     }
 }

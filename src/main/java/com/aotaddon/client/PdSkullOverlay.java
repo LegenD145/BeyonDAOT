@@ -19,10 +19,7 @@ import net.neoforged.neoforge.client.event.RenderGuiEvent;
  * Register via: NeoForge.EVENT_BUS.register(new PdSkullOverlay());
  * inside the Dist.CLIENT block in AotAddon's constructor.
  *
- * NOTE: ClientPdState is currently a placeholder that nothing writes to yet —
- * this will render nothing until the real PdState/command system on the
- * server side syncs a non-NONE value into it (same sync pattern as
- * HonorSyncPayload -> ClientHonorData).
+ * NOTE: ClientPdState is fed by PdLifeSyncPayload on login and periodic sync.
  */
 @OnlyIn(Dist.CLIENT)
 public class PdSkullOverlay {

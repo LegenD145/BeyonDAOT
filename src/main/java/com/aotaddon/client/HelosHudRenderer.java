@@ -1,6 +1,5 @@
 package com.aotaddon.client;
 //the comments are crazy on this, i have illustrated everything for the ones if you wish to steal and fucking use my work lame ass dih
-import com.aotaddon.family.FamilyData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.neoforged.api.distmarker.Dist;
@@ -24,14 +23,12 @@ public class HelosHudRenderer {
     public void onRenderGui(RenderGuiEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
 
-        // Access player inline — no LocalPlayer import
-        net.minecraft.client.player.LocalPlayer player = mc.player;
-        if (player == null) return;
-        if (!FamilyData.isHelos(player)) return;
+        if (mc.player == null) return;
+        if (!"helos".equals(ClientCardStats.getFamily())) return;
         if (mc.screen != null) return;
 
-        int kills = FamilyData.getHelosKills(player);
-        boolean ready = kills >= FamilyData.HELOS_MAX_KILLS;
+        int kills = ClientCardStats.getHelosKills();
+        boolean ready = kills >= 5;
 
         String stars = buildStars(kills);
         String display = ready ? stars + " §6READY" : stars;
