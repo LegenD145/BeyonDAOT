@@ -71,7 +71,10 @@ public class FamilyEventHandler {
 
     public static void onPlayerFirstJoin(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        grantStartingBonusIfEligible(player);
+    }
 
+    public static void grantStartingBonusIfEligible(ServerPlayer player) {
         if (player.getPersistentData().getBoolean("startingBonusGranted")) return;
 
         CurrencyFaction.Faction faction = CurrencyFaction.get(player);

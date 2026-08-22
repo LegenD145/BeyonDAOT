@@ -1,5 +1,6 @@
 package com.aotaddon.client;
 
+import com.aotaddon.combat.ShifterTitanHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 
@@ -7,11 +8,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-/**
- * Client-side render state for titan bodies that have already had their
- * detached head spawned. This is intentionally visual-only; gameplay still
- * lives on the server.
- */
+/** Client-side headless render state for decapitated shifter titans. */
 public final class HeadlessTitanClientState {
 
     private static final long STATE_TTL_TICKS = 20L * 30L;
@@ -26,8 +23,9 @@ public final class HeadlessTitanClientState {
         pruneExpired(now);
     }
 
-    public static boolean isHeadlessFemaleTitan(Entity entity) {
-        if (entity == null || !entity.getClass().getName().equals("daot.FemaleTitanEntity")) {
+    public static boolean isHeadlessShifterTitan(Entity entity) {
+        if (!(entity instanceof net.minecraft.world.entity.LivingEntity living)
+                || !ShifterTitanHelper.isShifterTitan(living)) {
             return false;
         }
 
@@ -43,6 +41,12 @@ public final class HeadlessTitanClientState {
         }
 
         return true;
+    }
+
+    /** @deprecated use {@link #isHeadlessShifterTitan(Entity)} */
+    @Deprecated
+    public static boolean isHeadlessFemaleTitan(Entity entity) {
+        return isHeadlessShifterTitan(entity);
     }
 
     private static long currentGameTime() {

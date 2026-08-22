@@ -30,8 +30,7 @@ import com.aotaddon.registry.ModBlockEntities;
  * via its GUI (right-click with an empty hand), then passively refills nearby
  * crouching players' ODM gear over time (see GasCanisterPassiveRefillHandler).
  *
- * Renders via GeckoLib (GasCanisterRenderer) rather than a static blockstate
- * model, hence ENTITYBLOCK_ANIMATED.
+ * Renders via GeckoLib (GasCanisterRenderer) in-world; item uses a flat sprite model.
  */
 public class GasCanisterBlock extends BaseEntityBlock {
 
@@ -55,7 +54,7 @@ public class GasCanisterBlock extends BaseEntityBlock {
 
     @Override
     protected RenderShape getRenderShape(BlockState state) {
-        return RenderShape.MODEL;
+        return RenderShape.ENTITYBLOCK_ANIMATED;
     }
 
     @Override

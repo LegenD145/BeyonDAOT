@@ -9,7 +9,7 @@ import net.minecraft.network.chat.Component;
 
 /**
  * /setresidence <player> eldia|marley|clear — op 2.
- * Overrides currency nation; clear restores DAOT bloodline defaults.
+ * Overrides player residence; clear removes wallet nation.
  */
 public class SetResidenceCommand {
 
@@ -31,7 +31,7 @@ public class SetResidenceCommand {
 
     private static int execute(CommandSourceStack source, net.minecraft.server.level.ServerPlayer target, String residence) {
         ResidenceData.set(target, residence);
-        String shown = "clear".equals(residence) ? "bloodline default" : residence;
+        String shown = "clear".equals(residence) ? "none" : residence;
         String targetName = target.getName().getString();
 
         try {

@@ -42,6 +42,8 @@ public class SeveredPartEntity extends Entity implements GeoEntity {
 
     private static final EntityDataAccessor<String> BONE_NAME =
             SynchedEntityData.defineId(SeveredPartEntity.class, EntityDataSerializers.STRING);
+    private static final EntityDataAccessor<String> TITAN_CLASS =
+            SynchedEntityData.defineId(SeveredPartEntity.class, EntityDataSerializers.STRING);
 
     private static final double GRAVITY = 0.04;
     private static final double CULLING_RADIUS = 8.0;
@@ -68,9 +70,18 @@ public class SeveredPartEntity extends Entity implements GeoEntity {
         return this.entityData.get(BONE_NAME);
     }
 
+    public void setTitanClassName(String titanClassName) {
+        this.entityData.set(TITAN_CLASS, titanClassName == null ? "" : titanClassName);
+    }
+
+    public String getTitanClassName() {
+        return this.entityData.get(TITAN_CLASS);
+    }
+
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         builder.define(BONE_NAME, "head");
+        builder.define(TITAN_CLASS, "FemaleTitanEntity");
     }
 
     @Override
@@ -172,6 +183,9 @@ public class SeveredPartEntity extends Entity implements GeoEntity {
         if (tag.contains("BoneName")) {
             setBoneName(tag.getString("BoneName"));
         }
+        if (tag.contains("TitanClass")) {
+            setTitanClassName(tag.getString("TitanClass"));
+        }
         age = tag.getInt("Age");
         landed = tag.getBoolean("Landed");
         landedSpinDegrees = tag.getFloat("LandedSpinDegrees");
@@ -180,6 +194,7 @@ public class SeveredPartEntity extends Entity implements GeoEntity {
     @Override
     protected void addAdditionalSaveData(CompoundTag tag) {
         tag.putString("BoneName", getBoneName());
+        tag.putString("TitanClass", getTitanClassName());
         tag.putInt("Age", age);
         tag.putBoolean("Landed", landed);
         tag.putFloat("LandedSpinDegrees", landedSpinDegrees);

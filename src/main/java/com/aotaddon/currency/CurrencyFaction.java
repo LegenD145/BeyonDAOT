@@ -10,8 +10,7 @@ import java.util.UUID;
 
 /**
  * Wallet nation: medals (Eldia) vs banknotes (Marley).
- * Residence override wins; otherwise DAOT bloodline defaults
- * (Ackerman/Eldian → Eldia, Marleyan → Marley).
+ * Residence only — bloodline does not affect currency.
  */
 public final class CurrencyFaction {
 
@@ -27,22 +26,11 @@ public final class CurrencyFaction {
     private CurrencyFaction() {}
 
     public static Faction get(Player player) {
-        String residence = ResidenceData.get(player);
-        if ("eldia".equals(residence)) {
-            return Faction.ELDIAN;
-        }
-        if ("marley".equals(residence)) {
-            return Faction.MARLEY;
-        }
-
-        String name = readName(player);
-        if ("ELDIAN".equals(name) || "ACKERMAN".equals(name)) {
-            return Faction.ELDIAN;
-        }
-        if ("MARLEY".equals(name) || "MARLEYAN".equals(name)) {
-            return Faction.MARLEY;
-        }
-        return Faction.NONE;
+        return switch (ResidenceData.get(player)) {
+            case "eldia" -> Faction.ELDIAN;
+            case "marley" -> Faction.MARLEY;
+            default -> Faction.NONE;
+        };
     }
 
     /** DAOT enum name, or empty if unset / lookup failed. */

@@ -18,7 +18,7 @@ public class ModEntities {
             ENTITY_TYPES.register("severed_part",
                     () -> EntityType.Builder.<SeveredPartEntity>of(SeveredPartEntity::new, MobCategory.MISC)
                             .sized(2.0f, 2.0f)
-                            .clientTrackingRange(16)
+                            .clientTrackingRange(64)
                             .updateInterval(1)
                             .build("severed_part"));
 

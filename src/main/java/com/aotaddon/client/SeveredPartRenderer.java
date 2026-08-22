@@ -1,99 +1,67 @@
 package com.aotaddon.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import com.aotaddon.combat.SeveredPartEntity;
 import com.aotaddon.combat.SeveredPartGeoModel;
+import com.aotaddon.combat.ShifterTitanHelper;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.util.Mth;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
-import java.util.Optional;
-
 /**
- * Renders a SeveredPartEntity by hiding every bone in Female Titan's model
- * except the one named on the entity (and that bone's children), each
- * frame, then letting GeoEntityRenderer's normal render pass draw whatever
- * is left visible. Since SeveredPartEntity registers no animation
- * controllers, every visible bone stays in its geo-file bind pose.
- *
- * GeckoLib 4.8's setHidden(true) also hides children, so hidden parent
- * bones are forced to keep child traversal enabled while this renderer is
- * drawing a detached bone.
+ * Renders only the detached head bone from the parent shifter's DAOT geo file.
  */
 public class SeveredPartRenderer extends GeoEntityRenderer<SeveredPartEntity> {
 
-    private static final double FEMALE_HEAD_BONE_ANCHOR_Y = 11.0;
-
     public SeveredPartRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider.Context context) {
         super(context, new SeveredPartGeoModel());
-        this.shadowRadius = 2.0f;
+        this.shadowRadius = 1.5f;
     }
 
     @Override
     public void render(SeveredPartEntity entity, float entityYaw, float partialTick,
-                       PoseStack poseStack,
-                       net.minecraft.client.renderer.MultiBufferSource bufferSource, int packedLight) {
-        BakedGeoModel bakedModel = getGeoModel().getBakedModel(getGeoModel().getModelResource(entity));
-        applyBoneVisibility(bakedModel, entity.getBoneName());
-
+                       PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
         poseStack.pushPose();
         try {
             float spin = entity.getSpinDegrees(partialTick);
+            poseStack.mulPose(Axis.YP.rotationDegrees(Mth.rotLerp(partialTick, entity.yRotO, entity.getYRot())));
             poseStack.mulPose(Axis.XP.rotationDegrees(spin));
             poseStack.mulPose(Axis.ZP.rotationDegrees(spin * 0.55f));
-            poseStack.translate(0.0, -FEMALE_HEAD_BONE_ANCHOR_Y, 0.0);
+
+            double anchor = ShifterTitanHelper.severedHeadRenderAnchor(entity.getTitanClassName());
+            poseStack.translate(0.0, -anchor, 0.0);
+
             super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
         } finally {
             poseStack.popPose();
-            restoreBoneVisibility(bakedModel);
         }
     }
 
     @Override
-    protected void applyRotations(SeveredPartEntity animatable, PoseStack poseStack, float ageInTicks,
-                                  float rotationYaw, float partialTick, float nativeScale) {
-        float yaw = Mth.rotLerp(partialTick, animatable.yRotO, animatable.getYRot());
-        super.applyRotations(animatable, poseStack, ageInTicks, yaw, partialTick, nativeScale);
+    public void renderRecursively(PoseStack poseStack, SeveredPartEntity animatable, GeoBone bone,
+                                  RenderType renderType, MultiBufferSource bufferSource,
+                                  VertexConsumer buffer, boolean isReRender, float partialTick,
+                                  int packedLight, int packedOverlay, int colour) {
+        if (!isHeadTreeBone(bone, animatable.getBoneName())) {
+            return;
+        }
+        super.renderRecursively(poseStack, animatable, bone, renderType, bufferSource, buffer,
+                isReRender, partialTick, packedLight, packedOverlay, colour);
     }
 
-    private static void applyBoneVisibility(BakedGeoModel model, String targetBoneName) {
-        for (GeoBone root : model.topLevelBones()) {
-            hideSelfOnlyRecursively(root);
+    private static boolean isHeadTreeBone(GeoBone bone, String rootBoneName) {
+        GeoBone current = bone;
+        while (current != null) {
+            if (rootBoneName.equals(current.getName())) {
+                return true;
+            }
+            current = current.getParent();
         }
-
-        Optional<GeoBone> target = model.getBone(targetBoneName);
-        target.ifPresent(SeveredPartRenderer::showRecursively);
-    }
-
-    private static void hideSelfOnlyRecursively(GeoBone bone) {
-        bone.setHidden(true);
-        bone.setChildrenHidden(false);
-        for (GeoBone child : bone.getChildBones()) {
-            hideSelfOnlyRecursively(child);
-        }
-    }
-
-    private static void showRecursively(GeoBone bone) {
-        bone.setHidden(Boolean.TRUE.equals(bone.shouldNeverRender()));
-        bone.setChildrenHidden(false);
-        for (GeoBone child : bone.getChildBones()) {
-            showRecursively(child);
-        }
-    }
-
-    private static void restoreBoneVisibility(BakedGeoModel model) {
-        for (GeoBone root : model.topLevelBones()) {
-            restoreBoneVisibility(root);
-        }
-    }
-
-    private static void restoreBoneVisibility(GeoBone bone) {
-        bone.setHidden(Boolean.TRUE.equals(bone.shouldNeverRender()));
-        bone.setChildrenHidden(false);
-        for (GeoBone child : bone.getChildBones()) {
-            restoreBoneVisibility(child);
-        }
+        return false;
     }
 }

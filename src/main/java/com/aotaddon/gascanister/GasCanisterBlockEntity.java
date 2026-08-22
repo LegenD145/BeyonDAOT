@@ -106,6 +106,7 @@ public class GasCanisterBlockEntity extends BlockEntity implements Container, Me
     public static void serverTick(Level level, BlockPos pos, BlockState state, GasCanisterBlockEntity be) {
         // Slot 0 (Fill): drain canister into tank
         ItemStack fillStack = be.items.get(0);
+        boolean changed = false;
         if (!fillStack.isEmpty() && GasCanisterItemReflection.isGasCanisterItem(fillStack.getItem())) {
             int canisterGas = GasCanisterItemReflection.getGas(fillStack);
             int capacityRemaining = MAX_STORED_GAS - be.storedGas;
@@ -113,6 +114,7 @@ public class GasCanisterBlockEntity extends BlockEntity implements Container, Me
                 int transfer = Math.min(CANISTER_DRAIN_PER_TICK, Math.min(canisterGas, capacityRemaining));
                 GasCanisterItemReflection.setGas(fillStack, canisterGas - transfer);
                 be.addGas(transfer);
+                changed = true;
             }
         }
 
@@ -126,6 +128,17 @@ public class GasCanisterBlockEntity extends BlockEntity implements Container, Me
                 int transfer = Math.min(CANISTER_DRAIN_PER_TICK, Math.min(be.storedGas, canisterSpace));
                 GasCanisterItemReflection.setGas(takeStack, canisterGas + transfer);
                 be.removeGas(transfer);
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            be.setChanged();
+            if (!fillStack.isEmpty()) {
+                be.setItem(0, fillStack);
+            }
+            if (!takeStack.isEmpty()) {
+                be.setItem(1, takeStack);
             }
         }
     }

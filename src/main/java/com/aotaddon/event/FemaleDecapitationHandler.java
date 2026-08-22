@@ -1,6 +1,7 @@
 package com.aotaddon.event;
 
 import com.aotaddon.combat.DecapitationHandler;
+import com.aotaddon.combat.ShifterTitanHelper;
 import com.aotaddon.combat.HitboxDeduper;
 import com.aotaddon.util.ImpulseWindowHandler;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,7 +16,7 @@ import net.minecraft.world.entity.LivingEntity;
  * lands within this player's Impulse window, the normal eye-damage outcome
  * is replaced with an instant decapitation.
  *
- * Only Female Titan for now. Only affects the eye hitbox. Kills the parent
+ * Any DAOT shifter titan eye hitbox during Impulse window → decapitation.
  * shifter outright (see DecapitationHandler) - incapacitate-instead-of-kill
  * is a later step once the headless-but-alive render state exists.
  *
@@ -33,7 +34,7 @@ public class FemaleDecapitationHandler {
 
     public static void onEyeHurt(net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent event) {
         LivingEntity target = event.getEntity();
-        if (!target.getClass().getSimpleName().equals("FemaleTitanEyeEntity")) {
+        if (!ShifterTitanHelper.isTitanEyeEntity(target)) {
             return;
         }
 
@@ -49,7 +50,7 @@ public class FemaleDecapitationHandler {
         if (!(parent instanceof LivingEntity shifterTitan)) {
             return;
         }
-        if (!shifterTitan.getClass().getSimpleName().equals("FemaleTitanEntity")) {
+        if (!ShifterTitanHelper.isShifterTitan(shifterTitan)) {
             return;
         }
 

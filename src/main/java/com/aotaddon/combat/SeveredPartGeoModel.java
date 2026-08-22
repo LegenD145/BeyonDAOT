@@ -4,37 +4,27 @@ import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.model.GeoModel;
 
 /**
- * Points GeckoLib at daot's own Female Titan model/texture/animation files
- * so SeveredPartEntity can reuse them without needing a separate export.
- * Resource locations confirmed against daot's FemaleTitanModel.java
- * (mod id "dannys-aot", not this addon's own mod id).
- *
- * Animation resource is only here because GeckoLib's GeoModel requires one
- * to exist - SeveredPartEntity never registers any controllers, so the
- * animation file is never actually driven; every bone stays at its default
- * bind-pose transform from the geo file.
+ * Reuses the parent shifter titan's DAOT geo/texture for severed head rendering.
  */
 public class SeveredPartGeoModel extends GeoModel<SeveredPartEntity> {
 
-    private static final ResourceLocation MODEL =
-            ResourceLocation.fromNamespaceAndPath("dannys-aot", "geo/femaletitan.geo.json");
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath("dannys-aot", "textures/entity/femaletitan.png");
-    private static final ResourceLocation ANIMATION =
-            ResourceLocation.fromNamespaceAndPath("dannys-aot", "animations/femaletitan.animation.json");
+    private static final String MOD = "dannys-aot";
 
     @Override
     public ResourceLocation getModelResource(SeveredPartEntity animatable) {
-        return MODEL;
+        String base = ShifterTitanHelper.geoBaseName(animatable.getTitanClassName());
+        return ResourceLocation.fromNamespaceAndPath(MOD, "geo/" + base + ".geo.json");
     }
 
     @Override
     public ResourceLocation getTextureResource(SeveredPartEntity animatable) {
-        return TEXTURE;
+        String base = ShifterTitanHelper.textureBaseName(animatable.getTitanClassName());
+        return ResourceLocation.fromNamespaceAndPath(MOD, "textures/entity/" + base + ".png");
     }
 
     @Override
     public ResourceLocation getAnimationResource(SeveredPartEntity animatable) {
-        return ANIMATION;
+        String base = ShifterTitanHelper.animationBaseName(animatable.getTitanClassName());
+        return ResourceLocation.fromNamespaceAndPath(MOD, "animations/" + base + ".animation.json");
     }
 }

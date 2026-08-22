@@ -13,7 +13,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 
 /**
- * Routes /balance to medals (Eldian) or banknotes (Marley) by DAOT bloodline.
+ * Routes /balance to medals (Eldian) or banknotes (Marley) by residence.
  */
 final class FactionWallet {
 
@@ -79,7 +79,7 @@ final class FactionWallet {
 
     static int failNoFaction(CommandSourceStack source) {
         source.sendFailure(Component.literal(
-                "You have no faction currency. Set bloodline to eldian or marley.")
+                "You have no faction currency. Choose a residence with /residence eldia or /residence marley.")
                 .withStyle(ChatFormatting.RED));
         return 0;
     }

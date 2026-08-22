@@ -8,6 +8,8 @@ import com.aotaddon.client.HelosHudRenderer;
 import com.aotaddon.client.ODMDiagnosticKeybind;
 import com.aotaddon.config.AddonConfig;
 import com.aotaddon.currency.BalanceCommand;
+import com.aotaddon.currency.ResidenceChoiceCommand;
+import com.aotaddon.currency.ResidencePromptHandler;
 import com.aotaddon.currency.SetResidenceCommand;
 import com.aotaddon.family.FamilyEventHandler;
 import com.aotaddon.family.SetFamilyCommand;
@@ -119,6 +121,8 @@ public class AotAddon {
         NeoForge.EVENT_BUS.addListener((RegisterCommandsEvent e) ->
                 SetResidenceCommand.register(e.getDispatcher()));
         NeoForge.EVENT_BUS.addListener((RegisterCommandsEvent e) ->
+                ResidenceChoiceCommand.register(e.getDispatcher()));
+        NeoForge.EVENT_BUS.addListener((RegisterCommandsEvent e) ->
                 BalanceCommand.register(e.getDispatcher()));
         NeoForge.EVENT_BUS.addListener((RegisterCommandsEvent e) ->
                 com.aotaddon.command.PurCommand.register(e.getDispatcher()));
@@ -129,6 +133,11 @@ public class AotAddon {
 
         // Family events
         NeoForge.EVENT_BUS.addListener(FamilyEventHandler::onPlayerLogin);
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent e) -> {
+            if (e.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) {
+                ResidencePromptHandler.onPlayerLogin(player);
+            }
+        });
         NeoForge.EVENT_BUS.addListener(FamilyEventHandler::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(FamilyEventHandler::onPlayerFirstJoin);
         NeoForge.EVENT_BUS.addListener(FamilyEventHandler::onChatMessage);

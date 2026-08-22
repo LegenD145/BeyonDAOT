@@ -2,7 +2,7 @@ package com.aotaddon.currency;
 
 /**
  * Where the player lives for currency, independent of DAOT bloodline.
- * Key: "currencyResidence" — "eldia", "marley", or empty (use bloodline default).
+ * Key: "currencyResidence" — "eldia", "marley", or empty (no wallet).
  */
 public final class ResidenceData {
 
@@ -12,6 +12,11 @@ public final class ResidenceData {
 
     public static String get(net.minecraft.world.entity.player.Player player) {
         return player.getPersistentData().getString(KEY);
+    }
+
+    public static boolean hasResidence(net.minecraft.world.entity.player.Player player) {
+        String residence = get(player);
+        return "eldia".equals(residence) || "marley".equals(residence);
     }
 
     public static void set(net.minecraft.world.entity.player.Player player, String residence) {

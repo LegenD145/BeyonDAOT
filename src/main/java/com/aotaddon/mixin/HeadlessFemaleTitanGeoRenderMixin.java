@@ -29,10 +29,13 @@ public class HeadlessFemaleTitanGeoRenderMixin {
         if (!"head".equals(bone.getName())) {
             return;
         }
-        if (!((Object) this).getClass().getName().equals("daot.FemaleTitanRenderer")) {
+        if (!((Object) this).getClass().getName().startsWith("daot.")) {
             return;
         }
-        if (HeadlessTitanClientState.isHeadlessFemaleTitan(animatable)) {
+        if (!((Object) this).getClass().getSimpleName().endsWith("Renderer")) {
+            return;
+        }
+        if (HeadlessTitanClientState.isHeadlessShifterTitan(animatable)) {
             ci.cancel();
         }
     }
